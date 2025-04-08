@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Use Agg backend for non-GUI environments
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
@@ -7,6 +9,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import tempfile
 import logging
+from utils.replicate_chat import ReplicateChat
 from utils.analysis import generate_analysis
 from utils.loader import load_csv_documents, get_csv_preview
 from utils.preprocessing import clean_dataset
@@ -23,8 +26,17 @@ from utils.ml_insights import MLInsights
 
 
 
+
 # Initialize logger 
 logger = setup_logging()
+
+def initialize_chat():
+    """Initialize chat functionality"""
+    try:
+        return ReplicateChat()
+    except Exception as e:
+        st.error(f"Failed to initialize chat: {str(e)}")
+        return None
 
 
 def check_system_requirements():
@@ -554,17 +566,24 @@ def main():
             with tab6:
                 st.subheader("💬 Chat with Your Data")
                 
-                # Initialize chat state
-                init_chat_state()
-                
-                # Initialize chat if not already done
-                if not st.session_state.chat_initialized:
-                    with st.spinner("Initializing chat..."):
-                        try:
-                            st.session_state.chat_chain = initialize_chat()
-                        except Exception as e:
-                            st.error(f"Failed to initialize chat: {str(e)}")
-                            st.stop()
+                chat = initialize_chat()
+                if chat:
+                    question = st.text_input("Ask a question about your data:")
+                    if question:
+                        df_info = {
+                            'rows': len(df),
+                            'columns': list(df.columns),
+                            'dtypes': df.dtypes.to_dict(),
+                            'descriptions': {col: str(df[col].describe()) for col in df.columns}
+                        }
+                        
+                        with st.spinner("Generating response..."):
+                            try:
+                                response = chat.chat_with_data(df_info, question)
+                                st.write(response)
+                            except Exception as e:
+                                logger.error(f"Chat error: {str(e)}")
+                                st.error(f"Failed to generate response: {str(e)}")
                 
                 # Display chat history
                 for message in st.session_state.messages:
