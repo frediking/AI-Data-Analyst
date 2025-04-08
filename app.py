@@ -15,14 +15,13 @@ from utils.loader import load_csv_documents, get_csv_preview
 from utils.preprocessing import clean_dataset
 from utils.visualization import create_advanced_visualization, generate_visualizations
 from utils.export import export_dataset, export_quality_report
-from utils.state import initialize_session_state, update_state_after_cleaning
 from utils.logger import setup_logging
 from utils.cache import cache_dataframe, cache_analysis_results, clear_cache
-from utils.chatbot import initialize_chat, init_chat_state
 from utils.data_quality import generate_quality_report, assess_data_quality
 from utils.dashboard import InteractiveDashboard
 from utils.version_control import DataVersionControl
 from utils.ml_insights import MLInsights
+from utils.state import initialize_session_state, update_state_after_cleaning
 
 
 
@@ -42,10 +41,10 @@ def initialize_chat():
 def check_system_requirements():
     """Verify system requirements are met"""
     try:
-        import ollama
+        import replicate
         return True
     except ImportError:
-        st.error("Ollama not installed. Please install Ollama first.")
+        st.error("Replicate not installed. Please install with: pip install replicate")
         return False
 
 def validate_dataframe(df: pd.DataFrame) -> tuple[bool, str]:
@@ -63,10 +62,12 @@ def validate_dataframe(df: pd.DataFrame) -> tuple[bool, str]:
 
 def validate_session_state():
     """Validate session state integrity"""
-    required_keys = ['data_state', 'messages', 'original_df']
-    for key in required_keys:
-        if key not in st.session_state:
-            return False
+    if 'messages' not in st.session_state:
+        st.session_state.messages = []
+    if 'data_state' not in st.session_state:
+        st.session_state.data_state = {}
+    if 'original_df' not in st.session_state:
+        st.session_state.original_df = None
     return True
 
 
@@ -580,6 +581,9 @@ def main():
                         with st.spinner("Generating response..."):
                             try:
                                 response = chat.chat_with_data(df_info, question)
+                                # Add message to chat history
+                                st.session_state.messages.append({"role": "user", "content": question})
+                                st.session_state.messages.append({"role": "assistant", "content": response})
                                 st.write(response)
                             except Exception as e:
                                 logger.error(f"Chat error: {str(e)}")

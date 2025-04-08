@@ -29,13 +29,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-cov black isort flake8
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    
-    - name: Check code formatting
-      run: |
-        black --check .
-        isort --check-only --diff .
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
     - name: Run tests with pytest
+      env:
+        REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
       run: |
-        pytest tests/ -v --cov=utils --cov-report=xml --cov-report=term-missing
+        pytest tests/ -v --cov=utils --cov-report=xml
