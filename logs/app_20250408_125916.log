@@ -1,0 +1,133 @@
+2025-04-08 12:59:16,442 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 12:59:16,442 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 12:59:16,507 - utils.state - INFO - Session state initialized successfully
+2025-04-08 12:59:16,507 - FrozAI - INFO - Checking system requirements...
+2025-04-08 12:59:28,969 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 12:59:28,969 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 12:59:28,969 - utils.state - INFO - Session state initialized successfully
+2025-04-08 12:59:28,969 - FrozAI - INFO - Checking system requirements...
+2025-04-08 12:59:28,994 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 12:59:28,994 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 12:59:28,994 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 12:59:29,870 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 13:00:08,086 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 13:00:08,087 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 13:00:08,088 - FrozAI - INFO - Checking system requirements...
+2025-04-08 13:00:08,122 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 13:00:08,123 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 13:00:08,123 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 13:00:12,060 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 13:00:49,732 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 13:00:49,733 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 13:00:49,734 - FrozAI - INFO - Checking system requirements...
+2025-04-08 13:00:49,828 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 13:00:49,829 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 13:00:49,829 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 13:00:53,876 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 13:01:18,573 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 13:01:18,574 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 13:01:18,575 - FrozAI - INFO - Checking system requirements...
+2025-04-08 13:01:18,691 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 13:01:18,691 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 13:01:18,692 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 13:01:22,959 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 13:01:33,424 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 13:01:33,424 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 13:01:33,424 - FrozAI - INFO - Checking system requirements...
+2025-04-08 13:01:33,518 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 13:01:33,520 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 13:01:33,521 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 13:01:37,635 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 13:06:17,295 - FrozAI - ERROR - Visualization error: Image size (231116006 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/app.py", line 302, in main
+    st.pyplot(sns.pairplot(df.select_dtypes(include="number")).fig)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/runtime/metrics_util.py", line 410, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/pyplot.py", line 125, in pyplot
+    marshall(
+    ~~~~~~~~^
+        self.dg._get_delta_path_str(),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/pyplot.py", line 180, in marshall
+    marshall_images(
+    ~~~~~~~~~~~~~~~^
+        coordinates=coordinates,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        output_format="PNG",
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/lib/image_utils.py", line 442, in marshall_images
+    proto_img.url = image_to_url(
+                    ~~~~~~~~~~~~^
+        image, width, clamp, channels, output_format, image_id
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/lib/image_utils.py", line 334, in image_to_url
+    image_data = _ensure_image_size_and_format(image_data, width, image_format)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/lib/image_utils.py", line 188, in _ensure_image_size_and_format
+    pil_image: PILImage = Image.open(io.BytesIO(image_data))
+                          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/PIL/Image.py", line 3511, in open
+    im = _open_core(fp, filename, prefix, formats)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/PIL/Image.py", line 3500, in _open_core
+    _decompression_bomb_check(im.size)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/PIL/Image.py", line 3399, in _decompression_bomb_check
+    raise DecompressionBombError(msg)
+PIL.Image.DecompressionBombError: Image size (231116006 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.
+2025-04-08 13:26:53,868 - asyncio - ERROR - Exception in callback _HandlerDelegate.execute.<locals>.<lambda>() at /Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py:2438
+handle: <Handle _HandlerDelegate.execute.<locals>.<lambda>() at /Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py:2438>
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/web/bootstrap.py", line 347, in run
+    if asyncio.get_running_loop().is_running():
+       ~~~~~~~~~~~~~~~~~~~~~~~~^^
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 2438, in <lambda>
+    fut.add_done_callback(lambda f: f.result())
+                                    ~~~~~~~~^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 1790, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 2760, in get
+    await self.flush()
+asyncio.exceptions.CancelledError
+2025-04-08 13:26:53,880 - asyncio - ERROR - Exception in callback _HandlerDelegate.execute.<locals>.<lambda>() at /Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py:2438
+handle: <Handle _HandlerDelegate.execute.<locals>.<lambda>() at /Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py:2438>
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/web/bootstrap.py", line 347, in run
+    if asyncio.get_running_loop().is_running():
+       ~~~~~~~~~~~~~~~~~~~~~~~~^^
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 2438, in <lambda>
+    fut.add_done_callback(lambda f: f.result())
+                                    ~~~~~~~~^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 1790, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 2760, in get
+    await self.flush()
+asyncio.exceptions.CancelledError

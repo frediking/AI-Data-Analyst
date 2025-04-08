@@ -1,0 +1,59 @@
+2025-04-07 20:11:22,357 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-07 20:11:22,357 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-07 20:11:22,423 - utils.state - INFO - Session state initialized successfully
+2025-04-07 20:11:22,423 - FrozAI - INFO - Checking system requirements...
+2025-04-07 20:11:36,370 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-07 20:11:36,370 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-07 20:11:36,370 - utils.state - INFO - Session state initialized successfully
+2025-04-07 20:11:36,370 - FrozAI - INFO - Checking system requirements...
+2025-04-07 20:11:36,389 - utils.cache - INFO - DataFrame cache cleared
+2025-04-07 20:11:36,389 - utils.cache - INFO - Analysis results cache cleared
+2025-04-07 20:11:36,389 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-07 20:11:37,223 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-07 20:17:50,178 - FrozAI - ERROR - Visualization error: Image size (231116006 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/app.py", line 302, in main
+    st.pyplot(sns.pairplot(df.select_dtypes(include="number")).fig)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/runtime/metrics_util.py", line 410, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/pyplot.py", line 125, in pyplot
+    marshall(
+    ~~~~~~~~^
+        self.dg._get_delta_path_str(),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/pyplot.py", line 180, in marshall
+    marshall_images(
+    ~~~~~~~~~~~~~~~^
+        coordinates=coordinates,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        output_format="PNG",
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/lib/image_utils.py", line 442, in marshall_images
+    proto_img.url = image_to_url(
+                    ~~~~~~~~~~~~^
+        image, width, clamp, channels, output_format, image_id
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/lib/image_utils.py", line 334, in image_to_url
+    image_data = _ensure_image_size_and_format(image_data, width, image_format)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/elements/lib/image_utils.py", line 188, in _ensure_image_size_and_format
+    pil_image: PILImage = Image.open(io.BytesIO(image_data))
+                          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/PIL/Image.py", line 3511, in open
+    im = _open_core(fp, filename, prefix, formats)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/PIL/Image.py", line 3500, in _open_core
+    _decompression_bomb_check(im.size)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/PIL/Image.py", line 3399, in _decompression_bomb_check
+    raise DecompressionBombError(msg)
+PIL.Image.DecompressionBombError: Image size (231116006 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.

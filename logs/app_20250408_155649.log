@@ -1,0 +1,20 @@
+2025-04-08 15:56:49,179 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 15:56:49,179 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 15:56:49,262 - utils.state - INFO - Session state initialized successfully
+2025-04-08 15:56:49,262 - FrozAI - INFO - Checking system requirements...
+2025-04-08 15:57:16,918 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 15:57:16,919 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 15:57:16,919 - utils.state - INFO - Session state initialized successfully
+2025-04-08 15:57:16,919 - FrozAI - INFO - Checking system requirements...
+2025-04-08 15:57:16,944 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 15:57:16,944 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 15:57:16,944 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 15:57:17,811 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 15:57:18,035 - utils.version_control - INFO - Initialized version control storage
+2025-04-08 15:57:18,035 - FrozAI - ERROR - Version control error: cannot access local variable 'df_clean' where it is not associated with a value
+2025-04-08 15:57:18,035 - FrozAI - ERROR - Error processing file creditcard.csv: cannot access local variable 'df_clean' where it is not associated with a value
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/app.py", line 302, in main
+    update_state_after_cleaning(df_clean, cleaning_notes)
+                                ^^^^^^^^
+UnboundLocalError: cannot access local variable 'df_clean' where it is not associated with a value

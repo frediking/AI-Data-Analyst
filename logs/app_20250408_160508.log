@@ -1,0 +1,133 @@
+2025-04-08 16:05:08,446 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 16:05:08,446 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 16:05:08,525 - utils.state - INFO - Session state initialized successfully
+2025-04-08 16:05:08,525 - FrozAI - INFO - Checking system requirements...
+2025-04-08 16:05:11,504 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 16:05:11,504 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 16:05:11,505 - utils.state - INFO - Session state initialized successfully
+2025-04-08 16:05:11,505 - FrozAI - INFO - Checking system requirements...
+2025-04-08 16:05:11,526 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 16:05:11,526 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 16:05:11,526 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 16:05:12,390 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 16:05:13,789 - utils.data_quality - ERROR - Data quality assessment failed: 'float' object has no attribute 'round'
+2025-04-08 16:05:13,789 - FrozAI - ERROR - Failed to generate quality report: Failed to assess data quality: 'float' object has no attribute 'round'
+2025-04-08 16:05:13,815 - utils.visualization - ERROR - Visualization generation failed: Boolean array expected for the condition, not float64
+2025-04-08 16:05:13,816 - FrozAI - ERROR - Visualization error: Visualization generation failed: Boolean array expected for the condition, not float64
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/utils/visualization.py", line 29, in generate_visualizations
+    corr_matrix = df[numeric_cols].corr()
+                  ~~^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/pandas/core/frame.py", line 4089, in __getitem__
+    return self.where(key)
+           ~~~~~~~~~~^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/pandas/core/generic.py", line 10984, in where
+    return self._where(cond, other, inplace, axis, level)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/pandas/core/generic.py", line 10673, in _where
+    raise ValueError(msg.format(dtype=_dt))
+ValueError: Boolean array expected for the condition, not float64
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/app.py", line 422, in main
+    fig = generate_visualizations(df)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/runtime/caching/cache_utils.py", line 219, in __call__
+    return self._get_or_create_cached_value(args, kwargs, spinner_message)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/runtime/caching/cache_utils.py", line 261, in _get_or_create_cached_value
+    return self._handle_cache_miss(cache, value_key, func_args, func_kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/runtime/caching/cache_utils.py", line 320, in _handle_cache_miss
+    computed_value = self._info.func(*func_args, **func_kwargs)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/utils/visualization.py", line 44, in generate_visualizations
+    raise RuntimeError(f"Visualization generation failed: {str(e)}")
+RuntimeError: Visualization generation failed: Boolean array expected for the condition, not float64
+2025-04-08 16:06:01,319 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 16:06:01,321 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 16:06:01,322 - FrozAI - INFO - Checking system requirements...
+2025-04-08 16:06:01,351 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 16:06:01,351 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 16:06:01,352 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 16:06:02,270 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 16:06:03,468 - utils.data_quality - ERROR - Data quality assessment failed: 'float' object has no attribute 'round'
+2025-04-08 16:06:03,468 - FrozAI - ERROR - Failed to generate quality report: Failed to assess data quality: 'float' object has no attribute 'round'
+2025-04-08 16:06:03,496 - utils.visualization - ERROR - Visualization generation failed: Boolean array expected for the condition, not float64
+2025-04-08 16:06:03,497 - FrozAI - ERROR - Visualization error: Visualization generation failed: Boolean array expected for the condition, not float64
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/utils/visualization.py", line 29, in generate_visualizations
+    corr_matrix = df[numeric_cols].corr()
+                  ~~^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/pandas/core/frame.py", line 4089, in __getitem__
+    return self.where(key)
+           ~~~~~~~~~~^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/pandas/core/generic.py", line 10984, in where
+    return self._where(cond, other, inplace, axis, level)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/pandas/core/generic.py", line 10673, in _where
+    raise ValueError(msg.format(dtype=_dt))
+ValueError: Boolean array expected for the condition, not float64
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/app.py", line 422, in main
+    fig = generate_visualizations(df)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/runtime/caching/cache_utils.py", line 219, in __call__
+    return self._get_or_create_cached_value(args, kwargs, spinner_message)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/runtime/caching/cache_utils.py", line 261, in _get_or_create_cached_value
+    return self._handle_cache_miss(cache, value_key, func_args, func_kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/runtime/caching/cache_utils.py", line 320, in _handle_cache_miss
+    computed_value = self._info.func(*func_args, **func_kwargs)
+  File "/Users/macm1pro/Documents/ai_data_analyst1/utils/visualization.py", line 44, in generate_visualizations
+    raise RuntimeError(f"Visualization generation failed: {str(e)}")
+RuntimeError: Visualization generation failed: Boolean array expected for the condition, not float64
+2025-04-08 16:39:46,167 - asyncio - ERROR - Exception in callback _HandlerDelegate.execute.<locals>.<lambda>() at /Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py:2438
+handle: <Handle _HandlerDelegate.execute.<locals>.<lambda>() at /Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py:2438>
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/web/bootstrap.py", line 347, in run
+    if asyncio.get_running_loop().is_running():
+       ~~~~~~~~~~~~~~~~~~~~~~~~^^
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 2438, in <lambda>
+    fut.add_done_callback(lambda f: f.result())
+                                    ~~~~~~~~^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 1790, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 2760, in get
+    await self.flush()
+asyncio.exceptions.CancelledError
+2025-04-08 16:39:46,173 - asyncio - ERROR - Exception in callback _HandlerDelegate.execute.<locals>.<lambda>() at /Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py:2438
+handle: <Handle _HandlerDelegate.execute.<locals>.<lambda>() at /Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py:2438>
+Traceback (most recent call last):
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/streamlit/web/bootstrap.py", line 347, in run
+    if asyncio.get_running_loop().is_running():
+       ~~~~~~~~~~~~~~~~~~~~~~~~^^
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.13/3.13.2/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 2438, in <lambda>
+    fut.add_done_callback(lambda f: f.result())
+                                    ~~~~~~~~^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 1790, in _execute
+    result = await result
+             ^^^^^^^^^^^^
+  File "/Users/macm1pro/Documents/ai_data_analyst1/venv/lib/python3.13/site-packages/tornado/web.py", line 2760, in get
+    await self.flush()
+asyncio.exceptions.CancelledError

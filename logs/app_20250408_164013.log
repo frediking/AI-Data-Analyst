@@ -1,0 +1,26 @@
+2025-04-08 16:40:13,059 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 16:40:13,059 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 16:40:13,141 - utils.state - INFO - Session state initialized successfully
+2025-04-08 16:40:13,141 - FrozAI - INFO - Checking system requirements...
+2025-04-08 16:40:29,350 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 16:40:29,350 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 16:40:29,350 - utils.state - INFO - Session state initialized successfully
+2025-04-08 16:40:29,350 - FrozAI - INFO - Checking system requirements...
+2025-04-08 16:40:29,373 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 16:40:29,373 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 16:40:29,373 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 16:40:30,209 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 16:40:52,571 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 16:40:52,572 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 16:40:52,573 - FrozAI - INFO - Checking system requirements...
+2025-04-08 16:40:52,604 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 16:40:52,604 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 16:40:52,605 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 16:40:53,460 - FrozAI - INFO - Successfully loaded file: creditcard.csv
+2025-04-08 16:41:11,747 - FrozAI - INFO - Starting FrozAI Data Analyst v1.0.0
+2025-04-08 16:41:11,747 - FrozAI - INFO - Starting FrozAI Data Analyst...
+2025-04-08 16:41:11,748 - FrozAI - INFO - Checking system requirements...
+2025-04-08 16:41:11,773 - utils.cache - INFO - DataFrame cache cleared
+2025-04-08 16:41:11,773 - utils.cache - INFO - Analysis results cache cleared
+2025-04-08 16:41:11,773 - FrozAI - INFO - Processing file: creditcard.csv
+2025-04-08 16:41:12,674 - FrozAI - INFO - Successfully loaded file: creditcard.csv
