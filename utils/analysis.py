@@ -1,10 +1,9 @@
 import pandas as pd
-from langchain_community.llms import Ollama
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+import replicate
 from typing import Optional, Dict, Any
 from functools import lru_cache
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -16,19 +15,16 @@ def validate_input(summary: str, prompt: str) -> None:
         raise ValueError("Invalid or empty prompt")
 
 @lru_cache(maxsize=1)
-def load_model(model_name: str = "llama2") -> Ollama:
-    """Load the Ollama model with error handling"""
+def load_model():
+    """Load the Replicate model with error handling"""
     try:
-        model = Ollama(model=model_name, temperature=0.1)
-        # Test connection
-        model.invoke("test")
-        return model
-    except ConnectionError:
-        logger.error("Cannot connect to Ollama service")
-        raise ConnectionError("Cannot connect to Ollama. Is the service running?")
+        # Check for API token
+        if not os.getenv('REPLICATE_API_TOKEN'):
+            raise ValueError("REPLICATE_API_TOKEN not found in environment variables")
+        return True
     except Exception as e:
         logger.error(f"Failed to load model: {str(e)}")
-        raise RuntimeError(f"Failed to load model '{model_name}': {str(e)}")
+        raise RuntimeError(f"Failed to initialize Replicate: {str(e)}")
 
 def prepare_context(df: pd.DataFrame) -> Dict[str, Any]:
     """Prepare additional context about the dataset"""
@@ -51,7 +47,6 @@ def prepare_context(df: pd.DataFrame) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Context preparation failed: {str(e)}")
         raise ValueError(f"Failed to prepare context: {str(e)}")
-    
 
 def generate_analysis(summary: str, prompt: str, df: Optional[pd.DataFrame] = None) -> str:
     """Generate analysis based on data summary and user prompt"""
@@ -60,7 +55,7 @@ def generate_analysis(summary: str, prompt: str, df: Optional[pd.DataFrame] = No
         validate_input(summary, prompt)
         
         # Load model with connection test
-        llm = load_model()
+        load_model()
         
         # Prepare context if DataFrame provided
         context = ""
@@ -72,37 +67,39 @@ def generate_analysis(summary: str, prompt: str, df: Optional[pd.DataFrame] = No
                 logger.warning(f"Context preparation failed: {str(e)}")
                 context = "No additional context available"
         
-        # Create and run chain
-        chain = LLMChain(
-            llm=llm,
-            prompt=PromptTemplate(
-                input_variables=["data_summary", "user_question", "context"],
-                template="""
-You are an expert data analyst. Provide clear, concise, and accurate analysis.
+        # Create prompt for Replicate
+        prompt_text = f"""You are an expert data analyst. Provide clear, concise, and accurate analysis.
 
 Dataset Summary:
-{data_summary}
+{summary}
 
 Additional Context:
 {context}
 
-Question: {user_question}
+Question: {prompt}
 
 Please provide:
 1. Direct answer to the question
 2. Key insights relevant to the question
 3. Any important caveats or limitations
 
-Response:
-""".strip()
-            )
+Response:"""
+
+        # Use Replicate's Llama 2 model
+        output = replicate.run(
+            "meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3",
+            input={
+                "prompt": prompt_text,
+                "temperature": 0.1,
+                "max_length": 500,
+                "top_p": 0.9
+            }
         )
         
-        response = chain.run({
-            "data_summary": summary,
-            "user_question": prompt,
-            "context": context
-        })
+        # Concatenate streaming output
+        response = ""
+        for item in output:
+            response += item
         
         return response.strip()
     
