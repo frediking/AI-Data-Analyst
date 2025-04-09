@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import tempfile
 import logging
-from utils.replicate_chat import ReplicateChat
+from utils.DeepSeek import DeepSeekChat
 from utils.analysis import generate_analysis
 from utils.loader import load_csv_documents, get_csv_preview, validate_dataframe
 from utils.preprocessing import clean_dataset
@@ -32,7 +32,7 @@ logger = setup_logging()
 def initialize_chat():
     """Initialize chat functionality"""
     try:
-        return ReplicateChat()
+        return DeepSeekChat()
     except Exception as e:
         st.error(f"Failed to initialize chat: {str(e)}")
         return None
@@ -44,7 +44,7 @@ def check_system_requirements():
         import replicate
         return True
     except ImportError:
-        st.error("Replicate not installed. Please install with: pip install replicate")
+        st.error("Request not installed. Please install with: pip install replicate")
         return False
 
 def validate_dataframe(df: pd.DataFrame) -> tuple[bool, str]:
@@ -116,14 +116,14 @@ def load_and_process_data(file):
 
 def setup_page():
     st.set_page_config(page_title="AI Data Analyst", layout="wide")
-    st.title("📊 FrozAI Data Analyst")
+    st.title("📊 f-AI Data Analyst")
     st.markdown("""
     Upload a **CSV file** to:
     - 🧹 Clean and preprocess your data
     - 📊 Get statistical insights
     - 🤖 Quick Predictive Insights
     - 📈 Create visualizations
-    - 💬 Chat with your data using LLaMA 2
+    - 💬 Chat with your data using DeepSeeek R1
     """)
 
 def create_visualization(df):

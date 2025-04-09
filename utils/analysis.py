@@ -16,11 +16,11 @@ def validate_input(summary: str, prompt: str) -> None:
 
 @lru_cache(maxsize=1)
 def load_model():
-    """Load the Replicate model with error handling"""
+    """Load the DeepSeek model with error handling"""
     try:
         # Check for API token
-        if not os.getenv('REPLICATE_API_TOKEN'):
-            raise ValueError("REPLICATE_API_TOKEN not found in environment variables")
+        if not os.getenv('DEEPSEEK_API_TOKEN'):
+            raise ValueError("DEEPSEEK_API_TOKEN not found in environment variables")
         return True
     except Exception as e:
         logger.error(f"Failed to load model: {str(e)}")
