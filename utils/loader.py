@@ -1,16 +1,17 @@
-from typing import List, Optional
+from typing import Optional, Dict, Any
 from pathlib import Path
-from langchain.document_loaders import CSVLoader
-from langchain.schema import Document
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 def load_csv_documents(
     file_path: str,
     encoding: str = 'utf-8',
     csv_args: Optional[dict] = None
-) -> List[Document]:
+) -> pd.DataFrame:
     """
-    Loads a CSV file into LangChain Documents with enhanced error handling and options.
+    Loads a CSV file into a pandas DataFrame with enhanced error handling and options.
     
     Args:
         file_path (str): Path to the CSV file
@@ -18,7 +19,7 @@ def load_csv_documents(
         csv_args (dict, optional): Additional arguments for pandas read_csv
         
     Returns:
-        List[Document]: List of LangChain Document objects
+        pd.DataFrame: Loaded CSV data
         
     Raises:
         FileNotFoundError: If the file doesn't exist
@@ -38,27 +39,23 @@ def load_csv_documents(
             'low_memory': False
         }
         
-        # Initialize loader with custom configuration
-        loader = CSVLoader(
-            str(file_path),
-            encoding=encoding,
-            csv_args=csv_args
-        )
-        
-        # Load documents
-        documents = loader.load()
+        # Load DataFrame
+        df = pd.read_csv(str(file_path), **csv_args)
         
         # Validate output
-        if not documents:
+        if df.empty:
             raise ValueError("No data was loaded from the CSV file")
             
-        return documents
+        return df
         
     except pd.errors.EmptyDataError:
+        logger.error("Empty CSV file encountered")
         raise ValueError("The CSV file is empty")
     except UnicodeDecodeError:
+        logger.error(f"Encoding error with {encoding}")
         raise ValueError(f"Failed to decode file with {encoding} encoding. Try a different encoding.")
     except Exception as e:
+        logger.error(f"Error loading CSV: {str(e)}")
         raise Exception(f"Error loading CSV file: {str(e)}")
 
 def get_csv_preview(file_path: str, nrows: int = 5) -> pd.DataFrame:
@@ -75,4 +72,28 @@ def get_csv_preview(file_path: str, nrows: int = 5) -> pd.DataFrame:
     try:
         return pd.read_csv(file_path, nrows=nrows)
     except Exception as e:
+        logger.error(f"Error previewing CSV: {str(e)}")
         raise Exception(f"Error previewing CSV file: {str(e)}")
+
+def validate_dataframe(df: pd.DataFrame) -> Dict[str, Any]:
+    """
+    Validate loaded DataFrame and return basic statistics.
+    
+    Args:
+        df (pd.DataFrame): Input DataFrame
+        
+    Returns:
+        Dict[str, Any]: Basic statistics and validation results
+    """
+    try:
+        stats = {
+            "rows": len(df),
+            "columns": len(df.columns),
+            "missing_values": df.isnull().sum().to_dict(),
+            "dtypes": df.dtypes.to_dict(),
+            "memory_usage": df.memory_usage(deep=True).sum() / 1024 / 1024  # MB
+        }
+        return stats
+    except Exception as e:
+        logger.error(f"Error validating DataFrame: {str(e)}")
+        raise ValueError(f"Failed to validate DataFrame: {str(e)}")

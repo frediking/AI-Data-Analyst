@@ -11,7 +11,7 @@ import tempfile
 import logging
 from utils.replicate_chat import ReplicateChat
 from utils.analysis import generate_analysis
-from utils.loader import load_csv_documents, get_csv_preview
+from utils.loader import load_csv_documents, get_csv_preview, validate_dataframe
 from utils.preprocessing import clean_dataset
 from utils.visualization import create_advanced_visualization, generate_visualizations
 from utils.export import export_dataset, export_quality_report
