@@ -19,12 +19,13 @@ class ReplicateChat:
             logger.error("Invalid Replicate API token format")
             raise ValueError("Invalid Replicate API token format. Should start with 'r8_'")
         
-        # Use llama3 - free model
-        self.model_ref = "meta/meta-llama-3-8b-instruct"
+        # Use the latest stable version of the model
+        self.model_ref = "meta/llama-2-7b-chat:13c3cdee13ee059ab779f0291d29054dab00a47dad8261375654de5540165fb0"
         self.max_desc_length = 100
         
         # Set token in environment
         os.environ["REPLICATE_API_TOKEN"] = self.api_token
+        replicate.Client(api_token=self.api_token)  # Initialize client
         
         # Verify token is valid
         self._verify_token()
@@ -32,15 +33,24 @@ class ReplicateChat:
     def _verify_token(self) -> None:
         """Verify the API token is valid"""
         try:
-            # Simple test run
-            output = replicate.run(
+            # Simple test run with streaming
+            test_response = ""
+            for event in replicate.stream(
                 self.model_ref,
                 input={
                     "prompt": "test",
-                    "max_new_tokens": 1
+                    "max_tokens": 10,
+                    "temperature": 0.1,
+                    "system_prompt": "You are a helpful assistant"
                 }
-            )
-            next(output)  # Test if we can get at least one token
+            ):
+                if event is not None:
+                    test_response += str(event)
+                    break  # Just need first token to verify
+                
+            if not test_response:
+                raise ValueError("No response received during verification")
+            
         except Exception as e:
             logger.error(f"Token verification failed: {str(e)}")
             raise ValueError(f"Invalid API token: {str(e)}")
