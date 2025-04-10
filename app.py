@@ -37,7 +37,7 @@ def initialize_chat():
 def check_system_requirements():
     """Verify system requirements are met"""
     try:
-        import replicate
+        import requests
         return True
     except ImportError:
         st.error("Request not installed. Please install with: pip install replicate")
@@ -636,7 +636,7 @@ def main():
             with col1:
                 export_format = st.selectbox(
                     "Select processed data format:",
-                    ["csv", "excel", "json"]
+                    ["csv", "excel", "json", "yaml"]
                 )
                 data, filename, mimetype = export_dataset(df, export_format)
                 st.download_button(
@@ -700,13 +700,13 @@ def main():
 # Clean up resources on shutdown
 def cleanup_resources():
     """Clean up resources on shutdown"""
-    plt.close('all')
-    if 'temp_path' in st.session_state:
-        try:
+    try:
+        plt.close('all')
+        if 'temp_path' in st.session_state:
             clear_cache()
             os.unlink(st.session_state.temp_path)
-        except:
-            pass
+    except Exception as e:
+        logger.warning(f"Cleanup error: {str(e)}")
 
 if __name__ == "__main__":
     try:
