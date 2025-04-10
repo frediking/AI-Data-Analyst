@@ -19,7 +19,7 @@ class ReplicateChat:
             logger.error("Invalid Replicate API token format")
             raise ValueError("Invalid Replicate API token format. Should start with 'r8_'")
         
-        # Use Mistral 7B - free model
+        # Use llama3 - free model
         self.model_ref = "meta/meta-llama-3-8b-instruct"
         self.max_desc_length = 100
         
@@ -93,36 +93,33 @@ Provide a brief analysis with:
             raise RuntimeError(f"Failed to generate prompt: {str(e)}")
 
     def _get_response(self, prompt: str) -> str:
-        """Get response from Replicate API"""
+        """Get response from Replicate API using streaming"""
         try:
-            # Run model with specific parameters
-            output = replicate.run(
+            # Create complete prompt with system message
+            response_text = ""
+            for event in replicate.stream(
                 self.model_ref,
                 input={
-                    "debug": True,
-                    "top_k": 0,
-                    "top_p": 0.95,
                     "prompt": prompt,
-                    "max_length": 500,
+                    "max_tokens": 512,
                     "temperature": 0.7,
-                    "length_penalty": 1,
-                    "repetition_penalty": 1.1,
+                    "top_p": 0.95,
+                    "system_prompt": "You are a helpful data analysis assistant",
+                    "prompt_template": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
                     "stop_sequences": "<|end_of_text|>,<|eot_id|>",
-                    "system_prompt": "You are a helpful data analysis assistant."
+                    "length_penalty": 1,
+                    "presence_penalty": 0,
+                    "log_performance_metrics": False
                 }
-            )
-            
-            # Handle streaming response
-            response_text = ""
-            for text in output:
-                if text is not None:
-                    response_text += str(text)
-                    
+            ):
+                if event is not None:
+                    response_text += str(event)
+                
             if not response_text.strip():
                 raise ValueError("Empty response from API")
-                
-            return response_text.strip()
             
+            return response_text.strip()
+        
         except Exception as e:
             logger.error(f"API error: {str(e)}")
             raise RuntimeError(f"Failed to generate response: {str(e)}")
