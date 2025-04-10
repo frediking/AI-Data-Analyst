@@ -409,7 +409,7 @@ def main():
                 # Statistical Summary Section - After quality assessment
                 st.divider()
                 st.subheader("Statistical Summary")
-                col1, col2 = st.columns([2, 1])
+                col1, col2, col3 = st.columns([2, 1, 1])
                 with col1:
                     st.dataframe(df.head(10))
                 with col2:
@@ -417,6 +417,47 @@ def main():
                     st.write(f"- Rows: {stats['shape'][0]:,}")
                     st.write(f"- Columns: {stats['shape'][1]}")
                     st.write(f"- Memory Usage: {stats['memory_usage']:.2f} KB")
+
+                with col3:
+                    # Group by controls
+                    with st.expander("Group By Analysis"):
+                        group_cols = st.multiselect(
+                            "Group By Columns",
+                            df.select_dtypes(include=['object', 'category']).columns.tolist()
+                        )
+                        if group_cols:
+                            agg_funcs = st.multiselect(
+                                "Select Aggregation Functions",
+                                ["mean", "median", "sum", "count", "std", "min", "max"],
+                                default=["mean", "count"]
+                            )
+
+                            if agg_funcs:
+                                try:
+                                    # Get numeric columns for aggregation
+                                    numeric_cols = df.select_dtypes(include=['number']).columns
+                                    
+                                    # Perform groupby operation
+                                    grouped_df = df.groupby(group_cols)[numeric_cols].agg(agg_funcs)
+                                    
+                                    # Display results
+                                    st.write("### Grouped Analysis")
+                                    st.dataframe(
+                                        grouped_df.style.background_gradient(cmap='YlGnBu'),
+                                        height=400
+                                    )
+
+                                    # Add download button for grouped analysis
+                                    csv = grouped_df.to_csv().encode('utf-8')
+                                    st.download_button(
+                                        label="📥 Download Grouped Analysis",
+                                        data=csv,
+                                        file_name="grouped_analysis.csv",
+                                        mime="text/csv",
+                                    )
+                                except Exception as e:
+                                    st.error(f"Error in groupby analysis: {str(e)}")                                    
+                                      
 
             with tab3:
                 try:

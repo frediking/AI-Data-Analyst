@@ -75,3 +75,37 @@ def create_advanced_visualization(df: pd.DataFrame) -> None:
         logger.error(f"Advanced visualization failed: {str(e)}")
         st.error("Failed to create visualization. Please check your data.")
 
+
+def create_group_visualization(
+    df: pd.DataFrame,
+    group_cols: list,
+    numeric_cols: list,
+    viz_type: str = "box"
+) -> go.Figure:
+    """Create visualization for grouped data analysis"""
+    try:
+        if viz_type == "box":
+            fig = px.box(
+                df,
+                x=group_cols[0],
+                y=numeric_cols[0] if len(numeric_cols) > 0 else None,
+                color=group_cols[1] if len(group_cols) > 1 else None,
+                title=f"Distribution by {', '.join(group_cols)}",
+                template="plotly_white"
+            )
+        elif viz_type == "bar":
+            grouped_data = df.groupby(group_cols)[numeric_cols].mean().reset_index()
+            fig = px.bar(
+                grouped_data,
+                x=group_cols[0],
+                y=numeric_cols[0] if len(numeric_cols) > 0 else None,
+                color=group_cols[1] if len(group_cols) > 1 else None,
+                title=f"Average by {', '.join(group_cols)}",
+                template="plotly_white"
+            )
+            
+        return fig
+        
+    except Exception as e:
+        logger.error(f"Failed to create group visualization: {str(e)}")
+        raise RuntimeError(f"Visualization failed: {str(e)}")

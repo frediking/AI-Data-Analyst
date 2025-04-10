@@ -146,3 +146,37 @@ def _format_ranges(ranges: Dict) -> str:
         lines.append(f"- Range: {data['min']} to {data['max']}")
         lines.append(f"- Outliers: {data['outliers']['count']} ({data['outliers']['percentage']}%)")
     return "\n".join(lines)
+
+
+def export_grouped_analysis(
+    grouped_df: pd.DataFrame,
+    group_cols: list,
+    agg_funcs: list,
+    format: str = "csv"
+) -> Tuple[bytes, str, str]:
+    """Export grouped analysis results"""
+    try:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        if format == "csv":
+            data = grouped_df.to_csv().encode('utf-8')
+            filename = f"grouped_analysis_{timestamp}.csv"
+            mimetype = "text/csv"
+        elif format == "excel":
+            buffer = io.BytesIO()
+            grouped_df.to_excel(buffer)
+            data = buffer.getvalue()
+            filename = f"grouped_analysis_{timestamp}.xlsx"
+            mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        elif format == "json":
+            data = grouped_df.to_json(orient="split").encode('utf-8')
+            filename = f"grouped_analysis_{timestamp}.json"
+            mimetype = "application/json"
+        else:
+            raise ValueError(f"Unsupported format: {format}")
+            
+        return data, filename, mimetype
+        
+    except Exception as e:
+        logger.error(f"Failed to export grouped analysis: {str(e)}")
+        raise RuntimeError(f"Export failed: {str(e)}")

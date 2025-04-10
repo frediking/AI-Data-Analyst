@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 import logging
 
 logger = logging.getLogger(__name__)
@@ -149,3 +149,33 @@ def generate_quality_report(df: pd.DataFrame) -> str:
     except Exception as e:
         logger.error(f"Report generation failed: {str(e)}")
         return f"Failed to generate quality report: {str(e)}"
+    
+def assess_grouped_quality(df: pd.DataFrame, group_cols: list, numeric_cols: list) -> Dict[str, Any]:
+    """Assess data quality for grouped data"""
+    try:
+        quality_metrics = {
+            'group_completeness': {},
+            'group_statistics': {},
+            'outliers_by_group': {}
+        }
+        
+        grouped = df.groupby(group_cols)
+        
+        # Assess completeness by group
+        quality_metrics['group_completeness'] = grouped[numeric_cols].count().to_dict()
+        
+        # Basic statistics by group
+        quality_metrics['group_statistics'] = grouped[numeric_cols].describe().to_dict()
+        
+        # Detect outliers within groups
+        for name, group in grouped:
+            quality_metrics['outliers_by_group'][name] = {
+                col: detect_outliers(group[col]) for col in numeric_cols
+            }
+            
+        return quality_metrics
+        
+    except Exception as e:
+        logger.error(f"Error in group quality assessment: {str(e)}")
+        raise RuntimeError(f"Failed to assess grouped data quality: {str(e)}")
+
