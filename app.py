@@ -117,8 +117,9 @@ def setup_page():
     Upload a **CSV file** to:
     - 🧹 Clean and preprocess your data
     - 📊 Get statistical insights
-    - 🤖 Quick Predictive Insights
     - 📈 Create visualizations
+    - 📊 Build interactive dashboards
+    - 🤖 Quick Predictive Insights
     - 💬 Chat with your data using DeepSeeek R1
     """)
 
