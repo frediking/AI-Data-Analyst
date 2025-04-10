@@ -28,6 +28,9 @@ def initialize_session_state():
 
     if 'messages' not in st.session_state:
         st.session_state.messages = []
+    if 'chat' not in st.session_state:
+        st.session_state.chat = None
+
         
     if 'viz_settings' not in st.session_state:
         st.session_state.viz_settings = {
