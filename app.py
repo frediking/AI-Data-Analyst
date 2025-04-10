@@ -9,7 +9,7 @@ import tempfile
 from utils.DeepSeek import DeepSeekChat
 from utils.loader import get_csv_preview, validate_dataframe
 from utils.preprocessing import clean_dataset
-from utils.visualization import create_advanced_visualization, generate_visualizations
+from utils.visualization import create_advanced_visualization, generate_visualizations, create_group_visualization
 from utils.export import export_dataset, export_quality_report
 from utils.logger import setup_logging
 from utils.cache import cache_dataframe, cache_analysis_results, clear_cache
@@ -421,22 +421,40 @@ def main():
                 with col3:
                     # Group by controls
                     with st.expander("Group By Analysis"):
+
+                    # Allow selecting from all columns
+                        all_columns = df.columns.tolist()
+                        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+                        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+
+
+                        # Column selection with type indicators
                         group_cols = st.multiselect(
                             "Group By Columns",
-                            df.select_dtypes(include=['object', 'category']).columns.tolist()
+                            options=all_columns,
+
+                            help="Select columns to group by. 📊 = numeric, 📝 = text/category",
+                            format_func=lambda x: f"📊 {x}" if x in numeric_cols else f"📝 {x}"    
                         )
+
                         if group_cols:
+                             # Select columns to aggregate
+                            agg_cols = st.multiselect(
+                                "Select columns to aggregate",
+                                options=[col for col in df.columns if col not in group_cols],
+                                default=numeric_cols,
+                                help="Select columns to aggregate"
+                            )
+
+
                             agg_funcs = st.multiselect(
                                 "Select Aggregation Functions",
                                 ["mean", "median", "sum", "count", "std", "min", "max"],
-                                default=["mean", "count"]
+                                default=["mean"]
                             )
 
-                            if agg_funcs:
+                            if agg_cols and agg_funcs:
                                 try:
-                                    # Get numeric columns for aggregation
-                                    numeric_cols = df.select_dtypes(include=['number']).columns
-                                    
                                     # Perform groupby operation
                                     grouped_df = df.groupby(group_cols)[numeric_cols].agg(agg_funcs)
                                     
@@ -446,6 +464,23 @@ def main():
                                         grouped_df.style.background_gradient(cmap='YlGnBu'),
                                         height=400
                                     )
+
+                                    # Visualization options
+                                    viz_type = st.selectbox(
+                                        "Visualization type",
+                                        ["bar", "box"],
+                                        help="Select visualization type for grouped data"
+                                    )
+                
+                                    if viz_type:
+                                        fig = create_group_visualization(
+                                            df,
+                                            group_cols,
+                                            agg_cols,
+                                            viz_type
+                                        )
+                                        st.plotly_chart(fig, use_container_width=True)
+                      
 
                                     # Add download button for grouped analysis
                                     csv = grouped_df.to_csv().encode('utf-8')
