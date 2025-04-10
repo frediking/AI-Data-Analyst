@@ -14,12 +14,36 @@ class ReplicateChat:
             logger.error("REPLICATE_API_TOKEN not found in environment variables")
             raise ValueError("REPLICATE_API_TOKEN not found in environment variables")
         
-        # Updated to a more reliable model version
-        self.model_ref = "replicate/llama-2-70b-chat:2796ee9483c3fd7aa2e171d38f4ca12251a30609463dcfd4cd76703f22e96cdf"
+        # Verify token format
+        if not self.api_token.startswith('r8_'):
+            logger.error("Invalid Replicate API token format")
+            raise ValueError("Invalid Replicate API token format. Should start with 'r8_'")
+        
+        # Use Mistral 7B - free model
+        self.model_ref = "meta/meta-llama-3-8b-instruct"
         self.max_desc_length = 100
         
-        # Ensure token is set for replicate package
-        replicate.Client(api_token=self.api_token)
+        # Set token in environment
+        os.environ["REPLICATE_API_TOKEN"] = self.api_token
+        
+        # Verify token is valid
+        self._verify_token()
+        
+    def _verify_token(self) -> None:
+        """Verify the API token is valid"""
+        try:
+            # Simple test run
+            output = replicate.run(
+                self.model_ref,
+                input={
+                    "prompt": "test",
+                    "max_new_tokens": 1
+                }
+            )
+            next(output)  # Test if we can get at least one token
+        except Exception as e:
+            logger.error(f"Token verification failed: {str(e)}")
+            raise ValueError(f"Invalid API token: {str(e)}")
 
     def _truncate_descriptions(self, descriptions: Dict) -> Dict:
         """Truncate column descriptions to manage token length"""
@@ -76,12 +100,14 @@ Provide a brief analysis with:
                 self.model_ref,
                 input={
                     "debug": True,
-                    "top_k": 50,
-                    "top_p": 0.9,
+                    "top_k": 0,
+                    "top_p": 0.95,
                     "prompt": prompt,
                     "max_length": 500,
                     "temperature": 0.7,
+                    "length_penalty": 1,
                     "repetition_penalty": 1.1,
+                    "stop_sequences": "<|end_of_text|>,<|eot_id|>",
                     "system_prompt": "You are a helpful data analysis assistant."
                 }
             )
