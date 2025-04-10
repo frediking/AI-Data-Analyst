@@ -25,7 +25,7 @@ class DeepSeekChat:
         }
 
         # verify API token on initialization
-        self.verify_api_token()
+        self._verify_token()
 
     def _verify_token(self) -> None:
         """Verify API token is valid by making a test request"""
