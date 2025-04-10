@@ -10,7 +10,12 @@ class DeepSeekChat:
         """Initialize DeepSeek chat with API token"""
         self.api_token = os.getenv('DEEPSEEK_API_TOKEN')
         if not self.api_token:
+            logger.error("DEEPSEEK_API_TOKEN not found in environment variables")
             raise ValueError("DEEPSEEK_API_TOKEN not found in environment variables")
+        
+        if not self.api_token.startswith('sk-or-v1-'):
+            logger.error("Invalid DeepSeek API token format")
+            raise ValueError("Invalid DeepSeek API token format. Should start with 'sk-or-v1-'")
         
         self.api_url = "https://api.deepseek.com/v1/chat/completions"
         self.headers = {

@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import streamlit as st
 import pandas as pd
 import numpy as np
-from typing import Optional
+from typing import List, Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -78,31 +78,58 @@ def create_advanced_visualization(df: pd.DataFrame) -> None:
 
 def create_group_visualization(
     df: pd.DataFrame,
-    group_cols: list,
+    group_cols: List[str],
+    agg_cols: List[str],
     numeric_cols: list,
     viz_type: str = "box"
 ) -> go.Figure:
-    """Create visualization for grouped data analysis"""
+    """
+    Create visualization for grouped data analysis
+    
+    Args:
+        df: Input DataFrame
+        group_cols: Columns to group by
+        agg_cols: Columns to aggregate
+        viz_type: Type of visualization ('bar' or 'box')
+    
+    Returns:
+        Plotly figure object
+    """
     try:
-        if viz_type == "box":
-            fig = px.box(
-                df,
-                x=group_cols[0],
-                y=numeric_cols[0] if len(numeric_cols) > 0 else None,
-                color=group_cols[1] if len(group_cols) > 1 else None,
-                title=f"Distribution by {', '.join(group_cols)}",
-                template="plotly_white"
-            )
-        elif viz_type == "bar":
-            grouped_data = df.groupby(group_cols)[numeric_cols].mean().reset_index()
+        if not group_cols or not agg_cols:
+            raise ValueError("Both group_cols and agg_cols must be provided")
+        
+        if viz_type == "bar":
+            # Create bar chart
+            grouped_data = df.groupby(group_cols)[agg_cols].mean().reset_index()
             fig = px.bar(
                 grouped_data,
                 x=group_cols[0],
-                y=numeric_cols[0] if len(numeric_cols) > 0 else None,
+                y=agg_cols[0],
                 color=group_cols[1] if len(group_cols) > 1 else None,
-                title=f"Average by {', '.join(group_cols)}",
+                barmode='group',
+                title=f"Average {agg_cols[0]} by {', '.join(group_cols)}",
                 template="plotly_white"
             )
+        elif viz_type == "box":
+            # Create box plot
+            fig = px.box(
+                df,
+                x=group_cols[0],
+                y=agg_cols[0],
+                color=group_cols[1] if len(group_cols) > 1 else None,
+                title=f"Distribution of {agg_cols[0]} by {', '.join(group_cols)}",
+                template="plotly_white"
+            )
+        else:
+            raise ValueError(f"Unsupported visualization type: {viz_type}")
+        
+        # Update layout
+        fig.update_layout(
+            xaxis_title=group_cols[0],
+            yaxis_title=agg_cols[0],
+            showlegend=True
+        )
             
         return fig
         

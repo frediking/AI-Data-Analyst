@@ -178,4 +178,41 @@ def assess_grouped_quality(df: pd.DataFrame, group_cols: list, numeric_cols: lis
     except Exception as e:
         logger.error(f"Error in group quality assessment: {str(e)}")
         raise RuntimeError(f"Failed to assess grouped data quality: {str(e)}")
+    
+
+    # ...existing code...
+
+def analyze_group_quality(df: pd.DataFrame, group_cols: List[str], agg_cols: List[str]) -> Dict:
+    """
+    Analyze data quality metrics for grouped data
+    
+    Args:
+        df: Input DataFrame
+        group_cols: Columns to group by
+        agg_cols: Columns to analyze
+    
+    Returns:
+        Dictionary containing group-level quality metrics
+    """
+    try:
+        metrics = {}
+        grouped = df.groupby(group_cols)
+        
+        # Completeness by group
+        metrics['completeness'] = {
+            'missing_by_group': grouped[agg_cols].isnull().sum().to_dict(),
+            'complete_by_group': grouped[agg_cols].notnull().sum().to_dict()
+        }
+        
+        # Basic statistics by group
+        metrics['statistics'] = grouped[agg_cols].agg(['mean', 'std', 'min', 'max']).to_dict()
+        
+        # Group sizes
+        metrics['group_sizes'] = grouped.size().to_dict()
+        
+        return metrics
+        
+    except Exception as e:
+        logger.error(f"Failed to analyze group quality: {str(e)}")
+        raise RuntimeError(f"Group analysis failed: {str(e)}")
 
