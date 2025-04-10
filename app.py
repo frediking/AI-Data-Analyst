@@ -41,7 +41,7 @@ def initialize_chat():
 def check_system_requirements():
     """Verify system requirements are met"""
     try:
-        import ollama
+        import replicate
         return True
     except ImportError:
         st.error("Request not installed. Please install with: pip install replicate")
