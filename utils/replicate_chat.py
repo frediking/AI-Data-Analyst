@@ -14,12 +14,12 @@ class ReplicateChat:
             logger.error("REPLICATE_API_TOKEN not found in environment variables")
             raise ValueError("REPLICATE_API_TOKEN not found in environment variables")
         
-        # Use a more stable model reference
-        self.model_ref = "meta/llama-2-13b-chat:f4e2de70d66816a838a89eeeb621910adffb0dd0baba3976c96980970978018d"
+        # Updated to a more reliable model version
+        self.model_ref = "replicate/llama-2-70b-chat:2796ee9483c3fd7aa2e171d38f4ca12251a30609463dcfd4cd76703f22e96cdf"
         self.max_desc_length = 100
         
-        # Set environment variable
-        os.environ["REPLICATE_API_TOKEN"] = self.api_token
+        # Ensure token is set for replicate package
+        replicate.Client(api_token=self.api_token)
 
     def _truncate_descriptions(self, descriptions: Dict) -> Dict:
         """Truncate column descriptions to manage token length"""
@@ -51,15 +51,15 @@ class ReplicateChat:
         try:
             descriptions = self._truncate_descriptions(df_info.get('descriptions', {}))
             
-            # More concise prompt
-            return f"""Analyze this dataset:
-- Rows: {df_info.get('rows', 'N/A')}
-- Columns: {', '.join(df_info.get('columns', [])[:5])}... 
-- Key stats: {str(descriptions)[:200]}...
+            # Simplified prompt
+            return f"""Based on this dataset:
+Rows: {df_info.get('rows', 'N/A')}
+Columns: {', '.join(df_info.get('columns', [])[:5])}
+Stats: {str(descriptions)[:200]}
 
 Question: {question}
 
-Provide a concise response with:
+Provide a brief analysis with:
 1. Direct answer
 2. Key insights
 3. Limitations"""
@@ -71,32 +71,32 @@ Provide a concise response with:
     def _get_response(self, prompt: str) -> str:
         """Get response from Replicate API"""
         try:
-            # Run the model with retries
-            for attempt in range(3):
-                try:
-                    output = replicate.run(
-                        self.model_ref,
-                        input={
-                            "prompt": prompt,
-                            "temperature": 0.1,
-                            "max_tokens": 500,
-                            "top_p": 0.9,
-                            "system_prompt": "You are a helpful data analysis assistant."
-                        }
-                    )
+            # Run model with specific parameters
+            output = replicate.run(
+                self.model_ref,
+                input={
+                    "debug": True,
+                    "top_k": 50,
+                    "top_p": 0.9,
+                    "prompt": prompt,
+                    "max_length": 500,
+                    "temperature": 0.7,
+                    "repetition_penalty": 1.1,
+                    "system_prompt": "You are a helpful data analysis assistant."
+                }
+            )
+            
+            # Handle streaming response
+            response_text = ""
+            for text in output:
+                if text is not None:
+                    response_text += str(text)
                     
-                    # Collect streaming output
-                    response = ""
-                    for item in output:
-                        response += item
-                    
-                    return response.strip()
-                    
-                except Exception as e:
-                    if attempt == 2:  # Last attempt
-                        raise e
-                    time.sleep(1)  # Wait before retry
-                    
+            if not response_text.strip():
+                raise ValueError("Empty response from API")
+                
+            return response_text.strip()
+            
         except Exception as e:
             logger.error(f"API error: {str(e)}")
             raise RuntimeError(f"Failed to generate response: {str(e)}")
