@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any
 from functools import lru_cache
 import logging
 import os
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +67,13 @@ def generate_analysis(summary: str, prompt: str, df: Optional[pd.DataFrame] = No
                 logger.warning(f"Context preparation failed: {str(e)}")
                 context = "No additional context available"
         
-        # Create prompt for Replicate
-        prompt_text = f"""You are an expert data analyst. Provide clear, concise, and accurate analysis.
+        
+        # Create messages for DeepSeek API
+        messages = [
+            {"role": "system", "content": "You are an expert data analyst. Provide clear, concise, and accurate analysis."},
+            {"role": "user", "content": f"""
+
+        
 
 Dataset Summary:
 {summary}
@@ -80,27 +86,32 @@ Question: {prompt}
 Please provide:
 1. Direct answer to the question
 2. Key insights relevant to the question
-3. Any important caveats or limitations
+3. Any important caveats or limitations"""}
+        ]
 
-Response:"""
-
-        # Use Replicate's Llama 2 model
-        output = replicate.run(
-            "meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3",
-            input={
-                "prompt": prompt_text,
+        # Use DeepSeek API
+        response = requests.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.getenv('DEEPSEEK_API_TOKEN')}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": messages,
                 "temperature": 0.1,
-                "max_length": 500,
-                "top_p": 0.9
-            }
+                "max_tokens": 500
+            },
+            timeout=30
         )
         
-        # Concatenate streaming output
-        response = ""
-        for item in output:
-            response += item
-        
-        return response.strip()
+
+        # Check for API error response
+        if 'error' in response.json():
+            raise RuntimeError(f"API Error: {response.json()['error']}")
+            
+        return response.json()['choices'][0]['message']['content'].strip()
+
     
     except Exception as e:
         logger.error(f"Analysis generation failed: {str(e)}", exc_info=True)
