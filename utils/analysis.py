@@ -1,6 +1,8 @@
 import pandas as pd
 from typing import Optional, Dict, Any
 from functools import lru_cache
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 import logging
 import os
 import requests
@@ -19,8 +21,8 @@ def load_model():
     """Load the DeepSeek model with error handling"""
     try:
         # Check for API token
-        if not os.getenv('DEEPSEEK_API_TOKEN'):
-            raise ValueError("DEEPSEEK_API_TOKEN not found in environment variables")
+        if not os.getenv('REPLICATE_API_TOKEN'):
+            raise ValueError("REPLICATE_API_TOKEN not found in environment variables")
         return True
     except Exception as e:
         logger.error(f"Failed to load model: {str(e)}")
@@ -55,7 +57,7 @@ def generate_analysis(summary: str, prompt: str, df: Optional[pd.DataFrame] = No
         validate_input(summary, prompt)
         
         # Load model with connection test
-        load_model()
+        llm = load_model()
         
         # Prepare context if DataFrame provided
         context = ""
@@ -67,51 +69,39 @@ def generate_analysis(summary: str, prompt: str, df: Optional[pd.DataFrame] = No
                 logger.warning(f"Context preparation failed: {str(e)}")
                 context = "No additional context available"
         
-        
-        # Create messages for DeepSeek API
-        messages = [
-            {"role": "system", "content": "You are an expert data analyst. Provide clear, concise, and accurate analysis."},
-            {"role": "user", "content": f"""
-
-        
+        # Create and run chain
+        chain = LLMChain(
+            llm=llm,
+            prompt=PromptTemplate(
+                input_variables=["data_summary", "user_question", "context"],
+                template="""
+You are an expert data analyst. Provide clear, concise, and accurate analysis.
 
 Dataset Summary:
-{summary}
+{data_summary}
 
 Additional Context:
 {context}
 
-Question: {prompt}
+Question: {user_question}
 
 Please provide:
 1. Direct answer to the question
 2. Key insights relevant to the question
-3. Any important caveats or limitations"""}
-        ]
+3. Any important caveats or limitations
 
-        # Use DeepSeek API
-        response = requests.post(
-            "https://api.deepseek.com/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {os.getenv('DEEPSEEK_API_TOKEN')}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "deepseek-chat",
-                "messages": messages,
-                "temperature": 0.1,
-                "max_tokens": 500
-            },
-            timeout=30
+Response:
+""".strip()
+            )
         )
         
-
-        # Check for API error response
-        if 'error' in response.json():
-            raise RuntimeError(f"API Error: {response.json()['error']}")
-            
-        return response.json()['choices'][0]['message']['content'].strip()
-
+        response = chain.run({
+            "data_summary": summary,
+            "user_question": prompt,
+            "context": context
+        })
+        
+        return response.strip()
     
     except Exception as e:
         logger.error(f"Analysis generation failed: {str(e)}", exc_info=True)

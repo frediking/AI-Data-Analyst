@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import tempfile
-from utils.DeepSeek import DeepSeekChat
 from utils.loader import get_csv_preview, validate_dataframe
 from utils.preprocessing import clean_dataset
 from utils.visualization import create_advanced_visualization, generate_visualizations, create_group_visualization
@@ -18,12 +17,13 @@ from utils.dashboard import InteractiveDashboard
 from utils.version_control import DataVersionControl
 from utils.ml_insights import MLInsights
 from utils.state import initialize_session_state, update_state_after_cleaning
+from utils.replicate_chat import ReplicateChat
 from dotenv import load_dotenv
 
 # Load and validate environment variables
 load_dotenv()
-if not os.getenv('DEEPSEEK_API_TOKEN'):
-    st.error("DeepSeek API token not found. Please check your .env file.")
+if not os.getenv('REPLICATE_API_TOKEN'):
+    st.error("Replicate API token not found. Please check your .env file.")
     st.stop()
 
 # Initialize logger 
@@ -32,7 +32,7 @@ logger = setup_logging()
 def initialize_chat():
     """Initialize chat functionality"""
     try:
-        return DeepSeekChat()
+        return ReplicateChat()
     except Exception as e:
         st.error(f"Failed to initialize chat: {str(e)}")
         return None
@@ -41,7 +41,7 @@ def initialize_chat():
 def check_system_requirements():
     """Verify system requirements are met"""
     try:
-        import requests
+        import ollama
         return True
     except ImportError:
         st.error("Request not installed. Please install with: pip install replicate")
@@ -644,13 +644,10 @@ def main():
             with tab6:
                 st.subheader("💬 Chat with Your Data")
                 
-                # Initialize chat if not already done
-                if 'chat' not in st.session_state:
-                    st.session_state.chat = initialize_chat()
-                
-                if st.session_state.chat:
-                    # Chat input
-                    if prompt := st.chat_input("Ask about your data..."):
+                chat = initialize_chat()
+                if chat:
+                    question = st.text_input("Ask a question about your data:")
+                    if question:
                         df_info = {
                             'rows': len(df),
                             'columns': list(df.columns),
@@ -658,26 +655,52 @@ def main():
                             'descriptions': {col: str(df[col].describe()) for col in df.columns}
                         }
                         
-                        # Add user message to chat history
-                        st.session_state.messages.append({"role": "user", "content": prompt})
-                        
-                        # Display user message
-                        with st.chat_message("user"):
-                            st.write(prompt)
-                        
-                        # Generate and display assistant response
-                        with st.chat_message("assistant"):
-                            with st.spinner("Analyzing..."):
-                                try:
-                                    response = st.session_state.chat.chat_with_data(df_info, prompt)
-                                    st.write(response)
-                                    st.session_state.messages.append({
-                                        "role": "assistant",
-                                        "content": response
-                                    })
-                                except Exception as e:
-                                    logger.error(f"Chat error: {str(e)}")
-                                    st.error(f"Failed to generate response: {str(e)}")
+                        with st.spinner("Generating response..."):
+                            try:
+                                response = chat.chat_with_data(df_info, question)
+                                st.write(response)
+                            except Exception as e:
+                                logger.error(f"Chat error: {str(e)}")
+                                st.error(f"Failed to generate response: {str(e)}")
+                
+                # Display chat history
+                for message in st.session_state.messages:
+                    with st.chat_message(message["role"]):
+                        st.write(message["content"])
+                
+                # Chat input
+                if prompt := st.chat_input("Ask about your data..."):
+                    # Add user message
+                    st.session_state.messages.append({"role": "user", "content": prompt})
+                    
+                    # Display user message
+                    with st.chat_message("user"):
+                        st.write(prompt)
+                    
+                    # Generate response
+                    with st.chat_message("assistant"):
+                        with st.spinner("Analyzing..."):
+                            try:
+                                context = f"""
+                                Dataset Summary:
+                                - Rows: {df.shape[0]}
+                                - Columns: {', '.join(df.columns)}
+                                - Numeric columns: {df.select_dtypes(include=['number']).columns.tolist()}
+                                - Categories: {df.select_dtypes(include=['object']).columns.tolist()}
+                                """
+                                
+                                response = st.session_state.chat_chain.run({
+                                    "context": context,
+                                    "question": prompt
+                                })
+                                
+                                st.write(response)
+                                st.session_state.messages.append({
+                                    "role": "assistant",
+                                    "content": response
+                                })
+                            except Exception as e:
+                                st.error(f"Failed to generate response: {str(e)}")
                     
                     # Display chat history
                     for message in st.session_state.messages:

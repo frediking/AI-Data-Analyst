@@ -11,6 +11,7 @@ class ReplicateChat:
         """Initialize Replicate chat with API token"""
         self.api_token = os.getenv('REPLICATE_API_TOKEN')
         if not self.api_token:
+            logger.error("REPLICATE_API_TOKEN not found in environment variables")
             raise ValueError("REPLICATE_API_TOKEN not found in environment variables")
         
         # Llama 2 model settings
@@ -18,6 +19,7 @@ class ReplicateChat:
         self.temperature = 0.7
         self.max_length = 500
         self.top_p = 0.9
+        self.system_prompt = "You are an AI data analyst assistant."
 
     def generate_prompt(self, df_info: Dict[str, Any], question: str) -> str:
         """Generate context-aware prompt for Llama 2"""
@@ -59,13 +61,12 @@ Provide a clear, concise answer based on the data context provided."""
             raise RuntimeError(f"Failed to generate response: {str(e)}")
 
     @st.cache_data(ttl=3600)
+
     def chat_with_data(self, df_info: Dict[str, Any], question: str) -> str:
         """Generate response about the data"""
         try:
-            prompt = self.generate_prompt(df_info, question)
-            response = self.get_response(prompt)
-            return response
-            
+            prompt = self._generate_prompt(df_info, question)
+            return self._get_response(prompt)
         except Exception as e:
             logger.error(f"Chat error: {str(e)}")
             return f"Sorry, I couldn't process that request: {str(e)}"
