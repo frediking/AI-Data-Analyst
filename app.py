@@ -264,6 +264,17 @@ def main():
             df = load_and_process_data(temp_path)
             df = cache_dataframe(df)  # Cache after successful load
             logger.info(f"Successfully loaded file: {uploaded_file.name}")
+            logger.info(f"File received: {uploaded_file.name} ({uploaded_file.size} bytes)")
+            logger.info(f"Initial DataFrame shape: {df.shape}")
+            logger.debug(f"Sample data:\n{df.head(3).to_string()}")
+            
+            if df.empty:
+                st.error(f"File loaded but contains no data. Please check:"
+                        f"\n1. File is not empty"
+                        f"\n2. Correct delimiter (for CSVs)"
+                        f"\n3. Excel sheets contain data")
+                return
+            
             progress.progress(50)  # After loading
 
             # Generate and cache analysis results
@@ -411,15 +422,32 @@ def main():
             
             with tab2:
                 if df.empty:
-                    st.warning("No data available for analysis")
+                    with st.expander("View Raw File Contents"):
+                        st.code(uploaded_file.getvalue().decode('utf-8', 'replace')[:2000])
+                    st.error("No analyzable data found. Common fixes:"
+                            "\n• For CSVs: Try different delimiter or encoding"
+                            "\n• For Excel: Check sheet name and data location")
                     return
                 
+                logger.debug(f"Pre-stats DataFrame state:\n"
+                        f"Shape: {df.shape}\n"
+                        f"Columns: {list(df.columns)}\n"
+                        f"Null counts:\n{df.isnull().sum()}")
+                
+                st.subheader("Data Preview")
+                st.dataframe(df.head(10))
+                
                 try:
+                    st.success(f"Analyzing: {len(df)} rows × {len(df.columns)} columns")
+                    if len(df) > 100000:
+                        st.warning("Large dataset - consider sampling for faster analysis")
+                    
                     stats = generate_summary_stats(df)
-                    st.json(stats)
+                    with st.expander("View Detailed Statistics"):
+                        st.json(stats)
                 except Exception as e:
-                    logger.error(f"Stats generation failed: {str(e)}")
-                    st.error(f"Failed to generate stats: {str(e)}")
+                    logger.error(f"Stats error: {e}", exc_info=True)
+                    st.error(f"Analysis failed: {str(e)}")
                 
                 st.subheader("Data Quality & Statistical Summary")
                 
@@ -464,7 +492,7 @@ def main():
                                     'Unique Values': quality_metrics['uniqueness']['unique_values_per_column'],
                                     'Unique %': quality_metrics['uniqueness']['unique_percentages']
                                 })
-                                st.dataframe(unique_df.style.background_gradient(cmap='RdYlGn'))
+                                st.dataframe(unique_df.style.background_gradient(cmap='YlGn'))
                             
                             with q_tab3:
                                 st.write("Data Types and Consistency:")
