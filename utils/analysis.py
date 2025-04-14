@@ -1,108 +1,63 @@
-import pandas as pd
+"""
+Data analysis preparation module - prepares data for AI analysis
+"""
 from typing import Optional, Dict, Any
-from functools import lru_cache
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+import pandas as pd
+from datetime import datetime
 import logging
-import os
-import requests
 
 logger = logging.getLogger(__name__)
 
 def validate_input(summary: str, prompt: str) -> None:
-    """Validate input parameters"""
+    """Validate analysis inputs"""
     if not summary or not isinstance(summary, str):
-        raise ValueError("Invalid or empty data summary")
+        raise ValueError("Invalid data summary")
     if not prompt or not isinstance(prompt, str):
-        raise ValueError("Invalid or empty prompt")
-
-@lru_cache(maxsize=1)
-def load_model():
-    """Load the DeepSeek model with error handling"""
-    try:
-        # Check for API token
-        if not os.getenv('REPLICATE_API_TOKEN'):
-            raise ValueError("REPLICATE_API_TOKEN not found in environment variables")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to load model: {str(e)}")
-        raise RuntimeError(f"Failed to initialize Replicate: {str(e)}")
+        raise ValueError("Invalid prompt")
 
 def prepare_context(df: pd.DataFrame) -> Dict[str, Any]:
-    """Prepare additional context about the dataset"""
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("Input must be a pandas DataFrame")
+    """Prepare DataFrame context for analysis"""
     try:
-        context = {
-            "total_rows": df.shape[0],
-            "total_columns": df.shape[1],
-            "column_types": df.dtypes.to_dict(),
-            "missing_values": df.isnull().sum().to_dict(),
-            "numeric_columns": df.select_dtypes(include=['int64', 'float64']).columns.tolist(),
-            "categorical_columns": df.select_dtypes(include=['object', 'category']).columns.tolist()
+        return {
+            "shape": df.shape,
+            "columns": list(df.columns),
+            "sample": df.head(3).to_dict(orient='records')
         }
-        
-        if context["numeric_columns"]:
-            context["numeric_stats"] = df[context["numeric_columns"]].describe().to_dict()
-            
-        return context
     except Exception as e:
-        logger.error(f"Context preparation failed: {str(e)}")
-        raise ValueError(f"Failed to prepare context: {str(e)}")
+        logger.warning(f"Context preparation failed: {str(e)}")
+        return {"error": str(e)}
 
-def generate_analysis(summary: str, prompt: str, df: Optional[pd.DataFrame] = None) -> str:
-    """Generate analysis based on data summary and user prompt"""
-    try:
-        # Validate inputs first
-        validate_input(summary, prompt)
-        
-        # Load model with connection test
-        llm = load_model()
-        
-        # Prepare context if DataFrame provided
-        context = ""
-        if df is not None:
-            try:
-                context_dict = prepare_context(df)
-                context = "\n".join([f"- {k}: {v}" for k, v in context_dict.items()])
-            except Exception as e:
-                logger.warning(f"Context preparation failed: {str(e)}")
-                context = "No additional context available"
-        
-        # Create and run chain
-        chain = LLMChain(
-            llm=llm,
-            prompt=PromptTemplate(
-                input_variables=["data_summary", "user_question", "context"],
-                template="""
-You are an expert data analyst. Provide clear, concise, and accurate analysis.
-
-Dataset Summary:
-{data_summary}
-
-Additional Context:
-{context}
-
-Question: {user_question}
-
-Please provide:
-1. Direct answer to the question
-2. Key insights relevant to the question
-3. Any important caveats or limitations
-
-Response:
-""".strip()
-            )
-        )
-        
-        response = chain.run({
-            "data_summary": summary,
-            "user_question": prompt,
-            "context": context
-        })
-        
-        return response.strip()
+def generate_analysis_payload(
+    summary: str, 
+    prompt: str, 
+    df: Optional[pd.DataFrame] = None
+) -> Dict[str, Any]:
+    """
+    Prepare analysis payload without API calls
     
-    except Exception as e:
-        logger.error(f"Analysis generation failed: {str(e)}", exc_info=True)
-        raise RuntimeError(f"Analysis generation failed: {str(e)}")
+    Returns:
+        {
+            "data_summary": str,
+            "user_question": str,
+            "context": dict,
+            "metadata": {
+                "timestamp": str,
+                "columns": List[str]
+            }
+        }
+    """
+    validate_input(summary, prompt)
+    
+    context = {}
+    if df is not None:
+        context = prepare_context(df)
+    
+    return {
+        "data_summary": summary,
+        "user_question": prompt,
+        "context": context,
+        "metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "columns": list(df.columns) if df is not None else []
+        }
+    }

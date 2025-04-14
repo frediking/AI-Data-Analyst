@@ -17,6 +17,7 @@ from utils.dashboard import InteractiveDashboard
 from utils.version_control import DataVersionControl
 from utils.ml_insights import MLInsights
 from utils.state import initialize_session_state, update_state_after_cleaning
+from utils.analysis import generate_analysis_payload
 from utils.replicate_chat import ReplicateChat
 from utils.sampling import stratified_sample, time_based_sample, get_sampling_methods
 from dotenv import load_dotenv
@@ -33,7 +34,7 @@ logger = setup_logging()
 def initialize_chat():
     """Initialize chat functionality"""
     try:
-        return ReplicateChat()
+        return ReplicateChat(model_ref="meta/llama-2-7b-chat:13c3cdee13ee059ab779f0291d29054dab00a47dad8261375654de5540165fb0") 
     except Exception as e:
         st.error(f"Failed to initialize chat: {str(e)}")
         return None
@@ -787,7 +788,9 @@ def main():
                                 try:
                                     context = get_chat_context(df, "Chat")
                                     prompt = format_context_for_prompt(context) + "\n" + prompt
-                                    response = st.session_state.chat.chat_with_data(df_info, prompt)
+                                    payload = generate_analysis_payload(context['data_summary'], prompt, df)
+                                    response = st.session_state.chat.chat_with_data(payload)
+
                                     st.write(response)
                                     st.session_state.messages.append({
                                         "role": "assistant",

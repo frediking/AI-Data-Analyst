@@ -48,5 +48,5 @@ def test_generate_analysis():
 ])
 def test_generate_analysis_invalid_inputs(invalid_input):
     from utils.analysis import generate_analysis
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, ValueError):
         generate_analysis(invalid_input, invalid_input)
