@@ -18,6 +18,7 @@ from utils.version_control import DataVersionControl
 from utils.ml_insights import MLInsights
 from utils.state import initialize_session_state, update_state_after_cleaning
 from utils.replicate_chat import ReplicateChat
+from utils.sampling import stratified_sample, time_based_sample, get_sampling_methods
 from dotenv import load_dotenv
 
 # Load and validate environment variables
@@ -84,10 +85,10 @@ def generate_summary_stats(df: pd.DataFrame):
 @st.cache_data(max_entries=2)
 def load_and_process_data(file):
     """
-    Load and process CSV data with caching and validation
+    Load and process data file with caching and validation
     
     Args:
-        file: File object or path to CSV file
+        file: File object or path to data file (CSV/XLSX)
         
     Returns:
         pd.DataFrame: Validated and processed dataframe
@@ -97,7 +98,12 @@ def load_and_process_data(file):
         ValueError: If dataframe validation fails
     """
     try:
-        df = pd.read_csv(file, low_memory=True)
+        if file.name.endswith('.csv'):
+            df = pd.read_csv(file, low_memory=True)
+        elif file.name.endswith('.xlsx'):
+            df = pd.read_excel(file)
+        else:
+            raise ValueError("Unsupported file format")
         
         # Validate before returning
         if not validate_dataframe(df):
@@ -106,11 +112,11 @@ def load_and_process_data(file):
         return df
         
     except pd.errors.EmptyDataError:
-        raise RuntimeError("The CSV file is empty")
+        raise RuntimeError("The uploaded file is empty")
     except pd.errors.ParserError:
-        raise RuntimeError("Failed to parse CSV file - invalid format")
+        raise RuntimeError("Failed to parse file - invalid format")
     except Exception as e:
-        raise RuntimeError(f"Failed to load CSV file: {str(e)}")
+        raise RuntimeError(f"Failed to load file: {str(e)}")
     
 
 
@@ -118,7 +124,7 @@ def setup_page():
     st.set_page_config(page_title="AI Data Analyst", layout="wide")
     st.title("📊 f-AI Data Analyst")
     st.markdown("""
-    Upload a **CSV file** to:
+    Upload a **CSV/XLSX file** to:
     - 🧹 Clean and preprocess your data
     - 📊 Get statistical insights
     - 📈 Create visualizations
@@ -151,12 +157,12 @@ def create_visualization(df):
 
 def validate_file_security(file) -> tuple[bool, str]:
     """Basic security validation"""
-    ALLOWED_EXTENSIONS = {'.csv'}
+    ALLOWED_EXTENSIONS = {'.csv', '.xlsx'}
     MAX_SIZE = 200 * 1024 * 1024  # 200MB
-    ALLOWED_MIME_TYPES = {'text/csv'}
+    ALLOWED_MIME_TYPES = {'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
     
-    if not file.name.lower().endswith('.csv'):
-        return False, "Only CSV files are allowed"
+    if not file.name.lower().endswith(('.csv', '.xlsx')):
+        return False, "Only CSV/XLSX files are allowed"
     if file.size > MAX_SIZE:
         return False, f"File too large (max {MAX_SIZE/1024/1024}MB)"
         # Add MIME type check
@@ -191,10 +197,10 @@ def main():
             return
 
     
-        uploaded_file = st.file_uploader("Upload your CSV", type=["csv"])
+        uploaded_file = st.file_uploader("Upload your CSV/XLSX", type=["csv", "xlsx"])
     
         if not uploaded_file:
-            st.info("Please upload a CSV file to begin.")
+            st.info("Please upload a CSV/XLSX file to begin.")
             return
         
         # Clear previous cache before processing new file
@@ -222,7 +228,7 @@ def main():
         try:
             logger.info(f"Processing file: {uploaded_file.name}")
             # Get file path from uploaded file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp_file:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx' if uploaded_file.name.endswith('.xlsx') else '.csv') as tmp_file:
                 tmp_file.write(uploaded_file.getvalue())
                 temp_path = tmp_file.name
             
@@ -247,6 +253,49 @@ def main():
             # Cache the initial state
             if 'original_df' not in st.session_state:
                 st.session_state.original_df = df.copy()
+
+            # Add sampling functionality
+            st.sidebar.subheader("📊 Sampling Options")
+            sampling_method = st.sidebar.selectbox(
+                "Select Sampling Method",
+                list(get_sampling_methods().keys()),
+                help="Select a sampling method for your data"
+            )
+            
+            if sampling_method == 'stratified':
+                if len(df.select_dtypes(include=['object', 'category']).columns) > 0:
+                    strat_col = st.sidebar.selectbox(
+                        "Select Column for Stratification",
+                        df.select_dtypes(include=['object', 'category']).columns
+                    )
+                    sample_size = st.sidebar.slider(
+                        "Sample Size",
+                        0.1, 1.0, 0.3,
+                        help="Fraction of data to sample"
+                    )
+                    df = stratified_sample(df, strat_col, sample_size)
+                else:
+                    st.sidebar.warning("No categorical columns found for stratification")
+            
+            elif sampling_method == 'time_based':
+                time_cols = [col for col in df.columns if pd.api.types.is_datetime64_any_dtype(df[col])]
+                if time_cols:
+                    time_col = st.sidebar.selectbox(
+                        "Select Time Column",
+                        time_cols
+                    )
+                    method = st.sidebar.radio(
+                        "Time Sampling Method",
+                        ['systematic', 'random']
+                    )
+                    sample_size = st.sidebar.slider(
+                        "Sample Size",
+                        0.1, 1.0, 0.3,
+                        help="Fraction/interval for time sampling"
+                    )
+                    df = time_based_sample(df, time_col, method=method, sample_size=sample_size)
+                else:
+                    st.sidebar.warning("No datetime columns found for time-based sampling")
 
             # Create tabs for different functionalities
             tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -697,7 +746,7 @@ def main():
             with col1:
                 export_format = st.selectbox(
                     "Select processed data format:",
-                    ["csv", "excel", "json", "yaml"]
+                    ["csv", "xlsx", "json", "yaml"]
                 )
                 data, filename, mimetype = export_dataset(df, export_format)
                 st.download_button(
