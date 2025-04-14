@@ -32,7 +32,7 @@ def export_dataset(df: pd.DataFrame, format: str) -> Tuple[bytes, str, str]:
         if not isinstance(df, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame")
         if df.empty:
-            raise ValueError("DataFrame is empty")
+            raise ValueError("Cannot export empty DataFrame")
             
         format = format.lower()
         if format not in ["csv", "excel", "json"]:

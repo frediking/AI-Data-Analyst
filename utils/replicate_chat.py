@@ -65,20 +65,25 @@ class ReplicateChat:
                 truncated[col] = str(desc)
         return truncated
 
-    def chat_with_data(self, df_info: Dict[str, Any], question: str) -> str:
-        """Generate response about the data"""
-        try:
-            prompt = self._generate_prompt(df_info, question)
-            response = self._get_response(prompt)
-            
-            if not response:
-                return "Sorry, I couldn't generate a response. Please try again."
-                
-            return response
-            
-        except Exception as e:
-            logger.error(f"Chat error: {str(e)}")
-            return f"Sorry, I couldn't process that request: {str(e)}"
+    def chat_with_data(self, df, prompt):
+        """Enhanced version that understands data context"""
+        system_prompt = """You're a data analyst assistant. 
+        When responding, consider:
+        1. The active tab user is viewing
+        2. Recent operations they performed
+        3. Currently open visualizations
+        """
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
+        
+        response = replicate.run(
+            self.model_ref,
+            input={"messages": messages}
+        )
+        return "".join([msg["content"] for msg in response])
 
     def _generate_prompt(self, df_info: Dict[str, Any], question: str) -> str:
         """Generate context-aware prompt"""

@@ -83,25 +83,21 @@ def generate_summary_stats(df: pd.DataFrame):
 
 
 @st.cache_data(max_entries=2)
-def load_and_process_data(file):
+def load_and_process_data(file_path: str):  # Now only accepts strings
     """
     Load and process data file with caching and validation
     
     Args:
-        file: File object or path to data file (CSV/XLSX)
+        file_path: Absolute path to file (must be string)
         
     Returns:
         pd.DataFrame: Validated and processed dataframe
-        
-    Raises:
-        RuntimeError: If file loading fails
-        ValueError: If dataframe validation fails
     """
     try:
-        if file.name.endswith('.csv'):
-            df = pd.read_csv(file, low_memory=True)
-        elif file.name.endswith('.xlsx'):
-            df = pd.read_excel(file)
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path, low_memory=True)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path)
         else:
             raise ValueError("Unsupported file format")
         
@@ -180,6 +176,33 @@ def validate_file_security(file) -> tuple[bool, str]:
 __version__ = "1.0.0"
 logger.info(f"Starting FrozAI Data Analyst v{__version__}")
 
+def get_chat_context(df, current_tab):
+    """Generate context object for chatbot"""
+    return {
+        'active_tab': current_tab,
+        'data_shape': df.shape,
+        'column_types': str(df.dtypes.to_dict()),
+        'missing_values': df.isnull().sum().to_dict(),
+        'last_operation': st.session_state.data_state.get('last_operation'),
+        'active_visualizations': [
+            viz for viz in ['heatmap','pairplot'] 
+            if f'show_{viz}' in st.session_state
+        ]
+    }
+
+
+def format_context_for_prompt(context):
+    """Convert context to natural language"""
+    prompt = f"""Current analysis context:
+- Viewing: {context['active_tab']} tab
+- Data: {context['data_shape'][0]} rows × {context['data_shape'][1]} columns
+"""
+    if context['last_operation']:
+        prompt += f"- Last action: {context['last_operation']}\n"
+    if context['active_visualizations']:
+        prompt += f"- Open charts: {', '.join(context['active_visualizations'])}\n"
+    return prompt
+
 def main():
     try:
         # Initialize logging and app state
@@ -226,13 +249,18 @@ def main():
             return
             
         try:
+            if not hasattr(uploaded_file, 'name'):  # Check if it's already a file object
+                uploaded_file = st.file_uploader("Upload your CSV/XLSX", type=["csv", "xlsx"]) 
+                if not uploaded_file:
+                    return
+            
             logger.info(f"Processing file: {uploaded_file.name}")
-            # Get file path from uploaded file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx' if uploaded_file.name.endswith('.xlsx') else '.csv') as tmp_file:
+            with tempfile.NamedTemporaryFile(delete=False, 
+                                          suffix='.xlsx' if uploaded_file.name.endswith('.xlsx') else '.csv') as tmp_file:
                 tmp_file.write(uploaded_file.getvalue())
                 temp_path = tmp_file.name
             
-             # Use cached loading
+            # Pass the temp path directly
             df = load_and_process_data(temp_path)
             df = cache_dataframe(df)  # Cache after successful load
             logger.info(f"Successfully loaded file: {uploaded_file.name}")
@@ -382,6 +410,17 @@ def main():
                
             
             with tab2:
+                if df.empty:
+                    st.warning("No data available for analysis")
+                    return
+                
+                try:
+                    stats = generate_summary_stats(df)
+                    st.json(stats)
+                except Exception as e:
+                    logger.error(f"Stats generation failed: {str(e)}")
+                    st.error(f"Failed to generate stats: {str(e)}")
+                
                 st.subheader("Data Quality & Statistical Summary")
                 
                 # Data Quality Section - Move this first
@@ -718,6 +757,8 @@ def main():
                         with st.chat_message("assistant"):
                             with st.spinner("Analyzing..."):
                                 try:
+                                    context = get_chat_context(df, "Chat")
+                                    prompt = format_context_for_prompt(context) + "\n" + prompt
                                     response = st.session_state.chat.chat_with_data(df_info, prompt)
                                     st.write(response)
                                     st.session_state.messages.append({
