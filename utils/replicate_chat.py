@@ -67,22 +67,20 @@ class ReplicateChat:
 
     def chat_with_data(self, df, prompt):
         """Enhanced version that understands data context"""
+        if not prompt or not isinstance(prompt, str) or not prompt.strip():
+           raise ValueError("Prompt is required for the chatbot API and cannot be empty.")
+
         system_prompt = """You're a data analyst assistant. 
         When responding, consider:
         1. The active tab user is viewing
         2. Recent operations they performed
         3. Currently open visualizations
         """
-        
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ]
-        
         response = replicate.run(
             self.model_ref,
-            input={"messages": messages}
+            input={"prompt": prompt, "system_prompt": system_prompt}        
         )
+
         return "".join([msg["content"] for msg in response])
 
     def _generate_prompt(self, df_info: Dict[str, Any], question: str) -> str:

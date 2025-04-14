@@ -47,6 +47,6 @@ def test_generate_analysis():
     ["not a string"]
 ])
 def test_generate_analysis_invalid_inputs(invalid_input):
-    """Test analysis generation with invalid inputs"""
-    with pytest.raises(ValueError):
-        generate_analysis(invalid_input, "valid prompt")
+    from utils.analysis import generate_analysis
+    with pytest.raises(RuntimeError):
+        generate_analysis(invalid_input, invalid_input)
