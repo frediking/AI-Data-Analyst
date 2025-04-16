@@ -103,10 +103,10 @@ def export_quality_report(quality_metrics: dict, format: str = "markdown"):
                 for col, info in uniqueness.items()
             )
             # Type consistency section
-            type_consistency = quality_metrics.get('type_consistency', {})
+            mixed_types = quality_metrics.get('mixed_types', {})
             type_lines = "\n".join(
-                f"  - {col}: {types}" for col, types in type_consistency.items()
-            ) if type_consistency else "  - All columns consistent"
+                f"  - {col}: {types}" for col, types in mixed_types.items()
+            ) if mixed_types else "  - All columns consistent"
             # Value ranges section
             value_ranges = quality_metrics.get('value_ranges', {})
             range_lines = "\n".join(
