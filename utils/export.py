@@ -69,14 +69,14 @@ def export_ml_artifacts(model: Any, filename: str) -> bytes:
         raise RuntimeError(f"Failed to export model: {str(e)}")
 
 
-def export_quality_report(quality_metrics: Dict, format: str = "markdown") -> Tuple[bytes, str, str]:
+def export_quality_report(quality_metrics: dict, format: str = "markdown"):
     """
     Export data quality report in various formats
-    
+
     Args:
         quality_metrics: Dictionary containing quality metrics
         format: Export format ('markdown', 'json', 'yaml')
-        
+
     Returns:
         Tuple containing:
         - Bytes of exported report
@@ -84,26 +84,50 @@ def export_quality_report(quality_metrics: Dict, format: str = "markdown") -> Tu
         - MIME type
     """
     try:
+        from datetime import datetime
+        import json
+        import yaml
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+
         if format == "markdown":
+            nulls = quality_metrics.get('null_summary', {})
+            null_lines = "\n".join(
+                f"  - {col}: {info['null_count']} ({info['null_percentage']}%)"
+                for col, info in nulls.items()
+            )
+            # Uniqueness section
+            uniqueness = quality_metrics.get('uniqueness', {})
+            uniq_lines = "\n".join(
+                f"  - {col}: {info['unique_count']} ({info['unique_percentage']}%)"
+                for col, info in uniqueness.items()
+            )
+            # Type consistency section
+            type_consistency = quality_metrics.get('type_consistency', {})
+            type_lines = "\n".join(
+                f"  - {col}: {types}" for col, types in type_consistency.items()
+            ) if type_consistency else "  - All columns consistent"
+            # Value ranges section
+            value_ranges = quality_metrics.get('value_ranges', {})
+            range_lines = "\n".join(
+                f"  - {col}: min={info['min']}, max={info['max']}"
+                for col, info in value_ranges.items()
+            )
             report = f"""# Data Quality Report
-            
+
 ## Completeness
-- Overall completeness: {quality_metrics['completeness']['overall_completeness']}%
+- Overall completeness: {quality_metrics.get('overall_completeness', 'N/A')}%
 - Missing values by column:
-{_format_dict(quality_metrics['completeness']['missing_percentages'])}
+{null_lines}
 
 ## Uniqueness
-- Duplicate rows: {quality_metrics['uniqueness']['duplicate_rows']}
-- Unique values by column:
-{_format_dict(quality_metrics['uniqueness']['unique_percentages'])}
+{uniq_lines}
 
-## Data Types
-{_format_dict(quality_metrics['type_consistency']['dtypes'])}
+## Data Type Consistency
+{type_lines}
 
 ## Value Ranges
-{_format_ranges(quality_metrics['value_ranges'])}
+{range_lines}
 
 Report generated: {datetime.now().isoformat()}
 """.strip()
@@ -112,28 +136,27 @@ Report generated: {datetime.now().isoformat()}
                 f"quality_report_{timestamp}.md",
                 "text/markdown"
             )
-            
+
         elif format == "json":
             return (
                 json.dumps(quality_metrics, indent=2).encode('utf-8'),
                 f"quality_report_{timestamp}.json",
                 "application/json"
             )
-            
+
         elif format == "yaml":
             return (
                 yaml.dump(quality_metrics).encode('utf-8'),
                 f"quality_report_{timestamp}.yaml",
                 "text/yaml"
             )
-            
+
         else:
             raise ValueError(f"Unsupported format: {format}")
-            
+
     except Exception as e:
         logger.error(f"Quality report export failed: {str(e)}")
         raise RuntimeError(f"Failed to export quality report: {str(e)}")
-
 def _format_dict(d: Dict) -> str:
     """Helper function to format dictionary for markdown"""
     return "\n".join([f"- {k}: {v}" for k, v in d.items()])

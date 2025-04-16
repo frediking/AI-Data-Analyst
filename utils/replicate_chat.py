@@ -83,7 +83,7 @@ class ReplicateChat:
 
         return "".join([msg["content"] for msg in response])
 
-    def _generate_prompt(self, df_info: Dict[str, Any], question: str) -> str:
+    def generate_prompt(self, df_info: Dict[str, Any], question: str) -> str:
         """Generate context-aware prompt"""
         try:
             descriptions = self._truncate_descriptions(df_info.get('descriptions', {}))

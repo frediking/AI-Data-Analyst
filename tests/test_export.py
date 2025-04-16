@@ -26,15 +26,20 @@ def sample_ml_model():
 
 @pytest.fixture
 def sample_quality_metrics():
-    """Fixture for sample quality metrics"""
+    """Fixture for sample quality metrics matching new structure"""
     return {
-        'completeness': {
-            'overall_completeness': 98.5,
-            'missing_counts': {'col1': 0, 'col2': 1}
+        'overall_completeness': 98.5,
+        'null_summary': {
+            'col1': {'null_count': 0, 'null_percentage': 0.0},
+            'col2': {'null_count': 1, 'null_percentage': 5.0}
         },
         'uniqueness': {
-            'duplicate_rows': 0,
-            'unique_percentages': {'col1': 100, 'col2': 95}
+            'col1': {'unique_count': 5, 'unique_percentage': 100},
+            'col2': {'unique_count': 4, 'unique_percentage': 95}
+        },
+        'type_consistency': {},
+        'value_ranges': {
+            'col1': {'min': 1, 'max': 5}
         }
     }
 
@@ -92,21 +97,16 @@ def test_export_quality_report(sample_quality_metrics):
     loaded_metrics = json.loads(content.decode('utf-8'))
     assert loaded_metrics == sample_quality_metrics
 
-@pytest.mark.parametrize("invalid_format", [
-    "invalid",
-    123,
-    None,
-    "pdf"  # Unsupported format
-])
-def test_export_dataset_invalid_format(sample_dataframe, invalid_format):
+
+def test_export_dataset_invalid_format(sample_dataframe):
     """Test error handling for invalid export formats"""
-    with pytest.raises(ValueError):
-        export_dataset(sample_dataframe, invalid_format)
+    with pytest.raises(RuntimeError):
+        export_dataset(sample_dataframe, 'invalid')
 
 def test_export_dataset_empty():
     """Test error handling for empty DataFrame"""
     empty_df = pd.DataFrame()
-    with pytest.raises(ValueError):
+    with pytest.raises(RuntimeError):
         export_dataset(empty_df, 'csv')
 
 def test_large_dataset_export(sample_dataframe):

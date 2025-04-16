@@ -1,4 +1,6 @@
 import pytest
+import shutil
+import os
 import pandas as pd
 from utils.version_control import DataVersionControl
 
@@ -25,7 +27,7 @@ def test_version_save_load():
     
     # Load version
     loaded_df = vc.load_version(version_id)
+    pd.testing.assert_frame_equal(loaded_df, df)
     
-    # Verify
-    assert loaded_df is not None
-    assert loaded_df.equals(df)
+    # Cleanup
+    shutil.rmtree("test_versions")

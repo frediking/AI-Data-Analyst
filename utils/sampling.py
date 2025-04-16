@@ -12,17 +12,6 @@ def stratified_sample(
 ) -> pd.DataFrame:
     """
     Stratified sampling that maintains class distribution
-    
-    Args:
-        df: Input DataFrame
-        stratify_col: Column to maintain distribution of
-        sample_size: Either:
-            - Integer: exact number of samples
-            - Float: fraction of data (0.0-1.0)
-        random_state: Random seed for reproducibility
-        
-    Returns:
-        Sampled DataFrame
     """
     if isinstance(sample_size, float):
         if not 0 < sample_size <= 1:
@@ -30,6 +19,8 @@ def stratified_sample(
         return df.groupby(stratify_col, group_keys=False)\
                  .apply(lambda x: x.sample(frac=sample_size, random_state=random_state))
     else:
+        if not isinstance(sample_size, int) or sample_size <= 0:
+            raise ValueError("Sample size must be a positive integer")
         return df.groupby(stratify_col, group_keys=False)\
                  .apply(lambda x: x.sample(n=min(sample_size, len(x)), random_state=random_state))
 

@@ -9,71 +9,106 @@ import logging
 logger = logging.getLogger(__name__)
 
 @st.cache_data(ttl=3600)
-def generate_visualizations(df: pd.DataFrame) -> Optional[go.Figure]:
-    """Generate and cache visualizations"""
-    try:
-        numeric_cols = df.select_dtypes(include=['number']).columns
-        if len(numeric_cols) == 0:
-            logger.warning("No numeric columns found for visualization")
-            return None
-            
-        # Create correlation matrix using plotly
-        corr_matrix = df[numeric_cols].corr()
-        fig = px.imshow(
-            corr_matrix,
-            title='Correlation Heatmap',
-            aspect='auto',
-            labels=dict(color="Correlation")
-        )
-        
-        # Update layout for better readability
-        fig.update_layout(
-            height=600,
-            width=800,
-            showlegend=True,
-            xaxis_title="Features",
-            yaxis_title="Features"
-        )
-        
-        # Add text annotations
-        fig.update_traces(
-            text=corr_matrix.round(2),
-            texttemplate="%{text}"
-        )
-        
-        return fig
-        
-    except Exception as e:
-        logger.error(f"Visualization generation failed: {str(e)}")
-        raise RuntimeError(f"Visualization generation failed: {str(e)}")
+def generate_visualizations(df, title=None, colorscale="Viridis", height=600, width=800):
+    """
+    Generate a heatmap visualization for numeric data.
 
-def create_advanced_visualization(df: pd.DataFrame) -> None:
-    """Create advanced interactive visualizations"""
-    try:
-        numeric_cols = df.select_dtypes(include=['number']).columns
-        if len(numeric_cols) < 2:
-            st.warning("Need at least 2 numeric columns for visualization")
-            return
-            
-        # Let user select columns
-        x_col = st.selectbox("Select X axis:", numeric_cols)
-        y_col = st.selectbox("Select Y axis:", 
-                           [col for col in numeric_cols if col != x_col])
-        
-        # Create scatter plot
-        fig = px.scatter(
-            df,
-            x=x_col,
-            y=y_col,
-            title=f"{y_col} vs {x_col}",
-            template="plotly_white"
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        title (str, optional): Title for the plot.
+        colorscale (str, optional): Plotly colorscale for the heatmap.
+
+    Returns:
+        go.Figure: Plotly Figure object.
+    """
+    # Input validation
+    if not isinstance(df, pd.DataFrame) or df is None:
+        raise ValueError("Input must be a non-empty pandas DataFrame.")
+    if df.empty:
+        raise ValueError("Input DataFrame is empty.")
+    numeric_cols = df.select_dtypes(include='number').columns
+    if len(numeric_cols) == 0:
+        raise ValueError("DataFrame must contain at least one numeric column.")
+
+    # Use only numeric columns for heatmap
+    heatmap_data = df[numeric_cols]
+
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=heatmap_data.values,
+            x=heatmap_data.columns,
+            y=heatmap_data.index,
+            colorscale=colorscale
         )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-    except Exception as e:
-        logger.error(f"Advanced visualization failed: {str(e)}")
-        st.error("Failed to create visualization. Please check your data.")
+    )
+    fig.update_layout(
+        title=title or "Data Heatmap",
+        xaxis_title="Columns",
+        yaxis_title="Index",
+        height=height,
+        width=width
+    )
+    return fig
+
+def create_advanced_visualization(df, x_col, y_col, color_col=None, title=None, colorscale="Viridis"):
+    """
+    Create an advanced scatter plot with optional color grouping.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        x_col (str): Column name for x-axis.
+        y_col (str): Column name for y-axis.
+        color_col (str, optional): Column name for grouping/color.
+        title (str, optional): Plot title.
+        colorscale (str, optional): Plotly colorscale.
+
+    Returns:
+        go.Figure: Plotly Figure object.
+    """
+    if not isinstance(df, pd.DataFrame) or df is None:
+        raise ValueError("Input must be a non-empty pandas DataFrame.")
+    if x_col not in df.columns or y_col not in df.columns:
+        raise ValueError("x_col and y_col must be valid column names in the DataFrame.")
+
+    if color_col and color_col in df.columns:
+        # Map categories to integers for color
+        categories = df[color_col].astype('category')
+        color_vals = categories.cat.codes
+        fig = go.Figure(
+            data=go.Scatter(
+                x=df[x_col],
+                y=df[y_col],
+                mode='markers',
+                marker=dict(
+                    color=color_vals,
+                    colorscale=colorscale,
+                    colorbar=dict(
+                        title=color_col,
+                        tickvals=list(range(len(categories.cat.categories))),
+                        ticktext=list(categories.cat.categories)
+                    )
+                ),
+                text=df[color_col].astype(str),
+                showlegend=False
+            )
+        )
+        fig.update_layout(title=title or f"{y_col} vs {x_col} by {color_col}")
+    else:
+        fig = go.Figure(
+            data=go.Scatter(
+                x=df[x_col],
+                y=df[y_col],
+                mode='markers',
+                marker=dict(colorscale=colorscale)
+            )
+        )
+        fig.update_layout(title=title or f"{y_col} vs {x_col}")
+
+    fig.update_layout(
+        xaxis_title=x_col,
+        yaxis_title=y_col
+    )
+    return fig
 
 
 def create_group_visualization(

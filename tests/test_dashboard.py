@@ -25,10 +25,28 @@ def test_create_time_series_plot(sample_dashboard):
     fig = sample_dashboard.create_time_series_plot(
         x_col='date',
         y_col='sales',
-        group_col='category'
     )
     assert isinstance(fig, go.Figure)
     assert fig.data  # Check if plot has data
+
+    fig_grouped = sample_dashboard.create_time_series_plot(
+        x_col='date',
+        y_col='sales',
+        groupby='category'
+    )
+    assert isinstance(fig_grouped, go.Figure)
+    assert fig_grouped.data  # Check if plot has data
+
+    fig_grouped = sample_dashboard.create_time_series_plot(
+        x_col='date',
+        y_col='sales',
+        groupby='category'
+    )
+    assert isinstance(fig_grouped, go.Figure)
+    assert fig_grouped.data  # Check if plot has data
+
+    # There should be as many traces as unique groups
+    assert len(fig_grouped.data) == sample_dashboard.df['category'].nunique()
 
 def test_create_distribution_plot(sample_dashboard):
     """Test distribution plot generation"""

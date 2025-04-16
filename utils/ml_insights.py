@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 class MLInsights:
     def __init__(self, df: pd.DataFrame):
+        if df.empty:
+            raise ValueError("Input DataFrame is empty.")
         self.df = df
         self.numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
         self.categorical_cols = df.select_dtypes(include=['object', 'category']).columns

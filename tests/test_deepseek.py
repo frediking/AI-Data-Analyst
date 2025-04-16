@@ -5,7 +5,7 @@ from utils.DeepSeek import DeepSeekChat
 @pytest.fixture
 def mock_env(monkeypatch):
     """Set up test environment variables"""
-    monkeypatch.setenv('DEEPSEEK_API_TOKEN', 'test_token')
+    monkeypatch.setenv('DEEPSEEK_API_TOKEN', 'sk-or-v1-test_token')
 
 @pytest.fixture
 def sample_data():
@@ -20,7 +20,7 @@ def sample_data():
 def test_chat_initialization(mock_env):
     """Test chat initialization with API token"""
     chat = DeepSeekChat()
-    assert chat.api_token == 'test_token'
+    assert chat.api_token == 'sk-or-v1-test_token'
     assert 'Authorization' in chat.headers
     assert 'Content-Type' in chat.headers
 
