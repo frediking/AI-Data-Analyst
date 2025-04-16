@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @st.cache_data(ttl=3600)
-def generate_visualizations(df, title=None, colorscale="Viridis", height=600, width=800):
+def generate_visualizations(df, title=None, colorscale="Viridis", height=600, width=800, template="plotly_white"):
     """
     Generate a heatmap visualization for numeric data.
 
@@ -50,7 +50,7 @@ def generate_visualizations(df, title=None, colorscale="Viridis", height=600, wi
     )
     return fig
 
-def create_advanced_visualization(df, x_col, y_col, color_col=None, title=None, colorscale="Viridis"):
+def create_advanced_visualization(df, x_col, y_col, color_col=None, title=None, colorscale="Viridis", template="plotly_white"):
     """
     Create an advanced scatter plot with optional color grouping.
 
@@ -106,7 +106,8 @@ def create_advanced_visualization(df, x_col, y_col, color_col=None, title=None, 
 
     fig.update_layout(
         xaxis_title=x_col,
-        yaxis_title=y_col
+        yaxis_title=y_col,
+        template=template
     )
     return fig
 
@@ -144,7 +145,8 @@ def create_group_visualization(
                 color=group_cols[1] if len(group_cols) > 1 else None,
                 barmode='group',
                 title=f"Average {agg_cols[0]} by {', '.join(group_cols)}",
-                template="plotly_white"
+                template=template,
+                color_continuous_scale=colorscale.lower()
             )
         elif viz_type == "box":
             # Create box plot
@@ -154,7 +156,8 @@ def create_group_visualization(
                 y=agg_cols[0],
                 color=group_cols[1] if len(group_cols) > 1 else None,
                 title=f"Distribution of {agg_cols[0]} by {', '.join(group_cols)}",
-                template="plotly_white"
+                template=template,
+                color_continuous_scale=colorscale.lower()
             )
         else:
             raise ValueError(f"Unsupported visualization type: {viz_type}")
@@ -163,6 +166,7 @@ def create_group_visualization(
         fig.update_layout(
             xaxis_title=group_cols[0],
             yaxis_title=agg_cols[0],
+            template=template,
             showlegend=True
         )
             

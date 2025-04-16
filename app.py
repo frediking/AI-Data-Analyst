@@ -19,6 +19,7 @@ from utils.ml_insights import MLInsights
 from utils.state import initialize_session_state, update_state_after_cleaning
 from utils.analysis import generate_analysis_payload
 from utils.replicate_chat import ReplicateChat
+from utils.data_cleaner import DataCleaner
 from utils.sampling import stratified_sample, time_based_sample, get_sampling_methods
 from dotenv import load_dotenv
 
@@ -337,15 +338,15 @@ def main():
                     st.sidebar.warning("No datetime columns found for time-based sampling")
 
             # Create tabs for different functionalities
-            tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
                 "🧹 Clean Data",
+                "🧰 Advanced Column Cleaning",  # NEW TAB
                 "📊 Statistical Summary",
                 "📈 Visualizations",
                 "📊 Interactive Dashboard",
                 "🤖 ML Predictive Insights", 
                 "💬 Chat with Data"
             ])
-
             with tab1:
                 # Add preview at the top of tab1
                 st.subheader("Data Preview")
@@ -419,8 +420,76 @@ def main():
                     st.error("No version history available yet")
             
                
+
             
             with tab2:
+                st.header("🧰 Advanced Column Cleaning")
+            
+                # --- Show columns with highest missing values ---
+                st.subheader("Columns with Most Missing Values")
+                nan_counts = df.isna().sum()
+                nan_perc = (nan_counts / len(df)) * 100
+                nan_summary = pd.DataFrame({
+                    "Missing Count": nan_counts,
+                    "Missing %": nan_perc.round(2)
+                })
+                nan_summary = nan_summary[nan_summary["Missing Count"] > 0].sort_values("Missing Count", ascending=False)
+            
+                if nan_summary.empty:
+                    st.success("No missing values found in the dataset! 🎉")
+                else:
+                    st.dataframe(nan_summary.head(5).style.background_gradient(cmap="Reds"), height=200)
+                    st.caption("Top columns by missing values (showing up to 5).")
+
+                cleaner = DataCleaner(df)
+            
+                # Numeric cleaning
+                st.subheader("Clean Numeric Column")
+                numeric_col = st.selectbox("Select numeric column to clean", df.select_dtypes(include='number').columns, key="clean_numeric_col")
+                num_imputation_method = st.selectbox(
+                    "Select imputation method for numeric column",
+                    ["Mean", "Median", "Mode", "Constant Value", 
+                    "Interpolate", "Forward Fill", "Back Fill", "Drop Rows"],
+                    key="num_impute_method"
+                )
+                if num_imputation_method == "Constant Value":
+                    num_constant_value = st.number_input("Value to fill missing entries with", value=0.0, key="num_constant_val")
+                else:
+                    num_constant_value = None
+            
+                if st.button("Clean Numeric Column"):
+                    cleaner.clean_numeric(numeric_col, num_imputation_method, value=num_constant_value)
+                    st.success(f"Missing values in {numeric_col} handled using {num_imputation_method} method.")
+            
+                # Categorical cleaning
+                st.subheader("Clean Categorical Column")
+                categorical_col = st.selectbox("Select categorical column to clean", df.select_dtypes(include=['object', 'category']).columns, key="clean_categorical_col")
+                cat_imputation_method = st.selectbox(
+                    "Select imputation method for categorical column",
+                    ["Mode", "Constant Value", "Drop Rows"],
+                    key="cat_impute_method"
+                )
+                if cat_imputation_method == "Constant Value":
+                    cat_constant_value = st.text_input("Value to fill missing entries with", value="missing", key="cat_constant_val")
+                else:
+                    cat_constant_value = None
+            
+                if st.button("Clean Categorical Column"):
+                    cleaner.clean_categorical(categorical_col, cat_imputation_method, value=cat_constant_value)
+                    st.success(f"Missing values in {categorical_col} handled using {cat_imputation_method} method.")
+            
+                # Show preview of cleaned DataFrame
+                st.subheader("Preview Cleaned Data")
+                st.dataframe(cleaner.get_cleaned_df())
+            
+                # Optionally, update main df for rest of app
+                if st.button("Apply Advanced Cleaning to Main DataFrame"):
+                    df = cleaner.get_cleaned_df()
+                    st.success("Advanced cleaning applied to main DataFrame!")
+
+
+
+            with tab3:
                 if df.empty:
                     with st.expander("View Raw File Contents"):
                         st.code(uploaded_file.getvalue().decode('utf-8', 'replace')[:2000])
@@ -625,7 +694,7 @@ def main():
                                     st.error(f"Error in groupby analysis: {str(e)}")                                    
                                       
 
-            with tab3:
+            with tab4:
                 try:
                     st.subheader("Data Visualization")
                     
@@ -639,19 +708,42 @@ def main():
                         "Select visualization type:",
                         ["Correlation Heatmap", "Advanced Charts"]
                     )
+
+                    template = st.selectbox(
+                        "Select plot theme",
+                        ["plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "presentation", "xgridoff", "ygridoff", "gridon", "none"],
+                        index=0
+                    )
+
+                    colorscale = st.selectbox(
+                        "Select color scale",
+                        ["Cividis", "Viridis", "Plasma", "Inferno", "Magma", "Jet", "Hot", "Cool"],
+                        index=0
+                    )
                     
                     if viz_type == "Correlation Heatmap":
-                        fig = generate_visualizations(df)
+                        fig = generate_visualizations(df, colorscale=colorscale, template=template)
                         if fig:
                             st.plotly_chart(fig, use_container_width=True)
-                    else:
-                        create_advanced_visualization(df)
+                    elif viz_type == "Advanced Charts":
+                        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+                        if len(numeric_cols) < 2:
+                            st.warning("Need at least 2 numeric columns for advanced charts.")
+                        else:
+                            x_col = st.selectbox("Select X column", options=numeric_cols, key="adv_x_col")
+                            y_col = st.selectbox("Select Y column", options=[col for col in numeric_cols if col != x_col], key="adv_y_col")
+                            if st.button("Generate Advanced Chart"):
+                                try:
+                                    fig = create_advanced_visualization(df, x_col, y_col, colorscale=colorscale, template=template)
+                                    st.plotly_chart(fig, use_container_width=True)
+                                except Exception as e:
+                                    st.error(f"Failed to create visualization: {e}")
                         
                 except Exception as e:
                     logger.error(f"Visualization error: {str(e)}", exc_info=True)
                     st.error(f"Failed to create visualization: {str(e)}")
             
-            with tab4:
+            with tab5:
                 st.subheader("📊 Interactive Dashboard")
         
                 try:
@@ -659,6 +751,19 @@ def main():
                     
                     # Dashboard Layout
                     st.write("### Data Explorer Dashboard")
+                    
+                    dashboard_template = st.selectbox(
+                        "Select dashboard plot theme",
+                        ["plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "presentation", "xgridoff", "ygridoff", "gridon", "none"],
+                        index=0,
+                        key="dashboard_template"
+                    )
+                    dashboard_colorscale = st.selectbox(
+                        "Select dashboard color scale",
+                        ["Cividis", "Viridis", "Plasma", "Inferno", "Magma", "Jet", "Hot", "Cool"],
+                        index=0,
+                        key="dashboard_colorscale"
+                    )
                     
                     # Sidebar for controls
                     chart_type = st.selectbox(
@@ -677,29 +782,48 @@ def main():
                                                 ["None"] + list(dashboard.categorical_cols))
                         
                         fig = dashboard.create_time_series_plot(
-                            x_col, 
-                            y_col, 
-                            None if group_col == "None" else group_col
+                            x_col,
+                            y_col,
+                            None if group_col == "None" else group_col,
+                            colorscale=dashboard_colorscale,
+                            template=dashboard_template
                         )
                         st.plotly_chart(fig, use_container_width=True)
-                        
+
                     elif chart_type == "Distribution Analysis":
                         col = st.selectbox("Select Column", dashboard.numeric_cols)
-                        fig = dashboard.create_distribution_plot(col)
+                        fig = dashboard.create_distribution_plot(col, colorscale=dashboard_colorscale, template=dashboard_template)
                         st.plotly_chart(fig, use_container_width=True)
-                        
+
                     elif chart_type == "Correlation Analysis":
-                        fig = dashboard.create_correlation_matrix()
+                        fig = dashboard.create_correlation_matrix(colorscale=dashboard_colorscale, template=dashboard_template)
                         st.plotly_chart(fig, use_container_width=True)
-                        
+
                     elif chart_type == "Scatter Analysis":
                         cols = st.multiselect(
                             "Select Columns (2-4 recommended)", 
                             dashboard.numeric_cols,
                             default=list(dashboard.numeric_cols)[:3]
                         )
+                        # Add color_by selector, ensure only real columns are shown
+                        valid_color_cols = list(dashboard.categorical_cols) + [
+                            col for col in dashboard.numeric_cols if col not in [
+                                "Cividis", "Viridis", "Plasma", "Inferno", "Magma", "Jet", "Hot", "Cool"
+                            ]
+                        ]
+                        color_by = st.selectbox(
+                            "Color points by (optional)", 
+                            ["None"] + valid_color_cols,
+                            key="scatter_color_by"
+                        )
                         if len(cols) >= 2:
-                            fig = dashboard.create_scatter_matrix(cols)
+                            color_arg = None if color_by == "None" else color_by
+                            fig = dashboard.create_scatter_matrix(
+                                cols, 
+                                color=color_arg, 
+                                colorscale=dashboard_colorscale, 
+                                template=dashboard_template
+                            )
                             st.plotly_chart(fig, use_container_width=True)
                         else:
                             st.warning("Please select at least 2 columns")
@@ -709,7 +833,7 @@ def main():
                     st.error(f"Failed to create dashboard: {str(e)}")    
 
 
-            with tab5:
+            with tab6:
                 st.subheader("🤖 Quick Predictive Insights")
     
                 try:
@@ -768,7 +892,7 @@ def main():
 
 
 
-            with tab6:
+            with tab7:
                 st.subheader("💬 Chat with Your Data")
                 
                 # Initialize chat if not already done
