@@ -228,8 +228,7 @@ def main():
             return
         
         # Clear previous cache before processing new file
-        clear_cache('dataframe')
-        clear_cache('analysis')
+        clear_cache()
         
         # Validate file security first
         is_secure, security_msg = validate_file_security(uploaded_file)
@@ -473,7 +472,7 @@ def main():
                             with col3:
                                 st.metric(
                                     "Mixed Type Columns",
-                                    len(quality_metrics['type_consistency']['mixed_types'])
+                                    len(quality_metrics['mixed_types'])
                                 )
                             
                             # Quality Metric Tabs
@@ -497,7 +496,7 @@ def main():
                             
                             with q_tab3:
                                 st.write("Data Types and Consistency:")
-                                for col, types in quality_metrics['type_consistency']['mixed_types'].items():
+                                for col, types in quality_metrics['mixed_types'].items():
                                     st.warning(f"Mixed types in '{col}': {', '.join(types)}")
                             
                             # Export options
@@ -533,6 +532,17 @@ def main():
                 col1, col2, col3 = st.columns([2, 1, 1])
                 with col1:
                     st.dataframe(df.head(10))
+                    # Add statistical summary
+                    try:
+                        summary = df.describe(include="all")
+                        if summary.empty or summary.isnull().all().all():
+                            st.warning("No analyzable data found in statistical summary.")
+                        else:
+                            st.subheader("Summary Statistics")
+                            st.dataframe(summary)
+                    except Exception as e:
+                        st.error(f"Failed to generate summary statistics: {e}")
+                    
                 with col2:
                     st.write("Dataset Info:")
                     st.write(f"- Rows: {stats['shape'][0]:,}")

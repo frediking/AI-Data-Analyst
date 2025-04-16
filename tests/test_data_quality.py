@@ -56,11 +56,11 @@ def test_type_consistency(sample_mixed_df, sample_dirty_df):
     """Test data type consistency checks"""
     metrics_clean = assess_data_quality(sample_mixed_df)
     # No mixed types expected in sample_mixed_df
-    assert len(metrics_clean['type_consistency']) == 0
+    assert len(metrics_clean['mixed_types']) == 0
 
     metrics_dirty = assess_data_quality(sample_dirty_df)
     # mixed_types and sparse have mixed types
-    assert 'mixed_types' in metrics_dirty['type_consistency']
+    assert 'mixed_types' in metrics_dirty['mixed_types']
 
 def test_outlier_detection(sample_mixed_df):
     """Test outlier detection"""

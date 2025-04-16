@@ -37,7 +37,7 @@ def sample_quality_metrics():
             'col1': {'unique_count': 5, 'unique_percentage': 100},
             'col2': {'unique_count': 4, 'unique_percentage': 95}
         },
-        'type_consistency': {},
+        'mixed_types': {},
         'value_ranges': {
             'col1': {'min': 1, 'max': 5}
         }

@@ -43,7 +43,14 @@ def assess_data_quality(df):
     # 1. Completeness
     total_cells = df.shape[0] * df.shape[1]
     completeness = round((1 - df.isnull().sum().sum() / total_cells) * 100, 2) if total_cells else 0.0
-    metrics['overall_completeness'] = completeness
+    missing_counts = df.isnull().sum().to_dict()
+    missing_percentages = ((df.isnull().sum() / len(df)) * 100).round(2).to_dict() if len(df) else {}
+
+    metrics['completeness'] = {
+        'overall_completeness': completeness,
+        'missing_counts': missing_counts,
+        'missing_percentages': missing_percentages
+    }
 
     # 2. Type Consistency (mixed types)
     type_consistency = {}
@@ -51,18 +58,23 @@ def assess_data_quality(df):
         types = set(type(x) for x in df[col] if pd.notnull(x))
         if len(types) > 1:
             type_consistency[col] = [str(t) for t in types]
-    metrics['type_consistency'] = type_consistency
+    metrics['mixed_types'] = type_consistency
 
-    # 3. Uniqueness (per column)
-    uniqueness = {}
+    # 3. Uniqueness (per column and overall)
+    per_column_uniqueness = {}
     for col in df.columns:
         unique_count = df[col].nunique(dropna=True)
         total_count = df[col].dropna().shape[0]
-        uniqueness[col] = {
+        per_column_uniqueness[col] = {
             'unique_count': int(unique_count),
             'unique_percentage': round((unique_count / total_count * 100), 2) if total_count else 0.0
         }
-    metrics['uniqueness'] = uniqueness
+    metrics['uniqueness'] = {
+        'per_column': per_column_uniqueness,
+        'duplicate_rows': int(df.duplicated().sum()),
+        'unique_values_per_column': {col: int(df[col].nunique(dropna=True)) for col in df.columns},
+        'unique_percentages': {col: round((df[col].nunique(dropna=True) / df[col].dropna().shape[0] * 100), 2) if df[col].dropna().shape[0] else 0.0 for col in df.columns}
+    }
 
     # 4. Outlier Detection (numeric columns)
     outliers = {}
@@ -114,10 +126,12 @@ def generate_quality_report(df: pd.DataFrame) -> str:
     report += "\n## 2. Uniqueness\n"
     for col, uniq in metrics['uniqueness'].items():
         report += f"  * {col}: {uniq['unique_percentage']}% unique ({uniq['unique_count']} unique values)\n"
+    if metrics['uniqueness'].get('duplicate_rows'):
+        report += f"  * Duplicate rows: {metrics['uniqueness']['duplicate_rows']}\n"
 
     # Type Consistency Section
     report += "\n## 3. Data Type Consistency\n"
-    for col, types in metrics['type_consistency'].items():
+    for col, types in metrics['mixed_types'].items():
         report += f"- {col}: {', '.join(types)}\n"
 
     # Value Ranges Section
