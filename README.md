@@ -1,4 +1,6 @@
-# AI Data Analyst
+# AI Data Analyst (Streamlit)
+
+![Screenshot 2025-04-18 at 00 28 23](https://github.com/user-attachments/assets/f1d2ea7a-7eb1-4a9f-94cf-1b25bc83e738)
 
 ## Overview
 The **AI Data Analyst** project is an intelligent data analysis tool that leverages artificial intelligence to automate and enhance data analytics tasks. This project provides a framework for performing exploratory data analysis (EDA), generating insights, creating visualizations, and building predictive models using AI-driven techniques. It is designed for data analysts, data scientists, and businesses looking to streamline data processing and decision-making processes.
