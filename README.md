@@ -1,4 +1,5 @@
 # AI Data Analyst (Streamlit)
+https://f-ai-data-analyst.streamlit.app
 
 ![Screenshot 2025-04-18 at 00 28 23](https://github.com/user-attachments/assets/f1d2ea7a-7eb1-4a9f-94cf-1b25bc83e738)
 
